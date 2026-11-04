@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GYA DECO · Gestión</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<style>
+:root{--bg:#141311;--card:#1f1d1a;--ink:#f1ece2;--mut:#a39c8e;--line:#35312b;--gold:#d2ad6a;--ok:#6cc48f;--bad:#e5786d;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Helvetica Neue",Arial,sans-serif}
+#app{display:flex;min-height:100vh}aside{width:210px;background:#0c0b0a;padding:18px 10px;flex:none}
+aside h1{font:400 20px Georgia,serif;letter-spacing:.3em;color:var(--gold);text-align:center;margin:0 0 18px}
+aside button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--mut);padding:10px 12px;border-radius:8px;cursor:pointer;font:inherit}
+aside button.on,aside button:hover{background:var(--card);color:var(--gold)}aside a{color:var(--mut);display:block;padding:10px 12px;text-decoration:none}
+main{flex:1;padding:20px;min-width:0}h2{font:400 22px Georgia,serif;margin:0 0 14px}
+h3{font:600 11px/1 inherit;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin:18px 0 8px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.k{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}.k span{display:block;color:var(--mut);font-size:12px}
+.k b{font:400 20px Georgia,serif}.pos b{color:var(--ok)}.neg b{color:var(--bad)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.row>div{flex:1;min-width:130px}
+label{display:block;color:var(--mut);font-size:12px;margin-bottom:3px}
+input,select{width:100%;padding:8px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;font:inherit}
+button.b{background:var(--gold);color:#1c1b19;border:0;border-radius:6px;padding:9px 14px;font-weight:600;cursor:pointer}button.s{background:none;color:var(--ink);border:1px solid var(--gold)}
+.t{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:.08em}td input{min-width:70px}td.r,th.r{text-align:right}
+.tag{padding:2px 8px;border-radius:9px;font-size:11px;background:var(--line)}.tag.anulada{color:var(--bad)}.tag.pendiente{color:var(--gold)}.tag.cobrada{color:var(--ok)}
+.m{color:var(--mut)}.err{color:var(--bad)}.al{border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:8px 12px;margin-bottom:10px}
+#toast{position:fixed;bottom:16px;right:16px;background:var(--card);border:1px solid var(--gold);padding:10px 14px;border-radius:8px;display:none;max-width:80vw;z-index:9}
+#login{max-width:340px;margin:12vh auto;padding:0 16px}#login h1{font:400 30px Georgia,serif;letter-spacing:.3em;color:var(--gold);text-align:center}
+@media print{aside,.np{display:none!important}body{background:#fff;color:#000}.k,.box{border-color:#ccc;background:#fff}th{color:#555}.k b{color:#000}}
+@media(max-width:760px){#app{flex-direction:column}aside{width:auto;display:flex;overflow-x:auto;padding:8px}aside h1{display:none}aside button,aside a{white-space:nowrap}}
+</style></head><body>
+<div id="app"></div><div id="toast"></div>
+<script>
+// ====== CONFIGURACIÓN: pegá acá los datos de tu proyecto Supabase (Settings > API) ======
+const SUPABASE_URL = "https://hgwvurzdcvnjtryzehea.supabase.co";
+const SUPABASE_KEY = "sb_publishable_pt6zduM9WY4bBwmqA2qqWQ_PWIlh1eL";
+// =========================================================================================
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $m=v=>"$ "+Number(v||0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const nn=v=>Number(v||0).toLocaleString("es-AR",{maximumFractionDigits:2});
+const iso=d=>d.toLocaleDateString("sv-SE"),hoy=()=>iso(new Date());
+let sb,me,view="dash",st={per:"mes"},prods=[];
+const rpc=async(f,a)=>{const{data,error}=await sb.rpc(f,a);if(error)throw error;return data};
+const q=async p=>{const{data,error}=await p;if(error)throw error;return data};
+const toast=(t,bad)=>{const e=$("#toast");e.textContent=t;e.style.borderColor=bad?"var(--bad)":"var(--gold)";e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",4500)};
+const act=async(f,ok)=>{try{await f();toast(ok||"Listo");return true}catch(e){toast(e.message,1);return false}};
+const csv=(n,head,rows)=>{const c=[head,...rows].map(r=>r.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download=n+".csv";a.click()};
+const chart=(labs,ser)=>{const W=640,H=190,mx=Math.max(1,...ser.flatMap(s=>s.v.map(Math.abs))),bw=W/labs.length,w=bw*.8/ser.length;
+  return `<div class="box"><svg viewBox="0 0 ${W} ${H+26}" style="width:100%;max-width:780px">${labs.map((l,i)=>ser.map((s,j)=>{const h=Math.abs(s.v[i])/mx*H;return `<rect x="${i*bw+bw*.1+j*w}" y="${H-h}" width="${w-3}" height="${h}" rx="2" fill="${s.v[i]<0?"#e5786d":s.c}"><title>${s.n} ${l}: ${$m(s.v[i])}</title></rect>`}).join("")+`<text x="${i*bw+bw/2}" y="${H+17}" fill="#a39c8e" font-size="12" text-anchor="middle">${l}</text>`).join("")}</svg><div class="m">${ser.map(s=>`<span style="color:${s.c}">■</span> ${s.n}`).join(" &nbsp; ")}</div></div>`};
+const K=(l,v,c)=>`<div class="k ${c||""}"><span>${l}</span><b>${v}</b></div>`;
+const rango=(p,a,b)=>{const n=new Date(),y=n.getFullYear(),m=n.getMonth(),D=iso;
+  return{hoy:[D(n),D(n)],7:[D(new Date(y,m,n.getDate()-6)),D(n)],30:[D(new Date(y,m,n.getDate()-29)),D(n)],mes:[D(new Date(y,m,1)),D(n)],
+  ant:[D(new Date(y,m-1,1)),D(new Date(y,m,0))],anio:[D(new Date(y,0,1)),D(n)],custom:[a,b]}[p]};
+
+async function boot(){
+  if(SUPABASE_URL.startsWith("PEGAR")){$("#app").innerHTML='<div id="login"><h1>GYA DECO</h1><p class="err">Falta configurar Supabase: editá gestion.html y pegá la URL y la anon key arriba del script.</p></div>';return}
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  session?start():login();
+}
+function login(){
+  $("#app").innerHTML=`<div id="login"><h1>GYA DECO</h1><div class="box"><label>Email</label><input id="em" type="email"><label style="margin-top:8px">Contraseña</label><input id="pw" type="password"><p></p><button class="b" id="go" style="width:100%">Ingresar</button></div></div>`;
+  const go=()=>act(async()=>{const{error}=await sb.auth.signInWithPassword({email:$("#em").value,password:$("#pw").value});if(error)throw error;start()},"Bienvenido");
+  $("#go").onclick=go;$("#pw").onkeydown=e=>e.key=="Enter"&&go();
+}
+async function start(){
+  const{data:{user}}=await sb.auth.getUser();
+  const{data}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
+  if(!data||!data.activo){$("#app").innerHTML='<div id="login"><h1>GYA DECO</h1><p class="err">Tu usuario todavía no tiene un perfil asignado.</p><button class="b s" onclick="salir()">Salir</button></div>';return}
+  me=data;view=me.rol=="admin"?"dash":"inv";shell();draw();
+}
+const salir=async()=>{await sb.auth.signOut();login()};
+const NAV=[["dash","Dashboard"],["venta","Registrar venta"],["hist","Historial de ventas"],["prod","Productos"],["gasto","Gastos"],["inv","Cuenta del inversor"],["caja","Caja y movimientos"],["rep","Reportes"]];
+function shell(){
+  const nv=me.rol=="admin"?NAV:NAV.filter(x=>x[0]=="inv");
+  $("#app").innerHTML=`<aside><h1>GYA DECO</h1>${nv.map(x=>`<button data-v="${x[0]}">${x[1]}</button>`).join("")}${me.rol=="admin"?'<a href="index.html">Presupuestos</a>':""}<button id="out">Salir (${esc(me.nombre)})</button></aside><main id="main"></main>`;
+  $$("aside button[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;draw()});$("#out").onclick=salir;
+}
+async function draw(){
+  $$("aside button[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==view));
+  $("#main").innerHTML='<p class="m">Cargando…</p>';
+  try{await V[view]()}catch(e){$("#main").innerHTML=`<p class="err">${esc(e.message)}</p>`}
+}
+const V={};
+
+V.dash=async()=>{
+  const[d,h]=rango(st.per,st.d,st.h),t=hoy(),m0=t.slice(0,8)+"01",P=(a,b)=>rpc("resumen_periodo",{p_desde:a,p_hasta:b});
+  const[r,vh,vm,vt,caja,inv,du,cons,dif]=await Promise.all([P(d,h),P(t,t),P(m0,t),P("2000-01-01",t),rpc("caja_actual"),rpc("resumen_inversor"),rpc("resumen_dueno"),rpc("verificar_consistencia"),rpc("periodos_con_diferencias")]);
+  const n0=new Date(),ms=[...Array(6)].map((_,k)=>{const t=new Date(n0.getFullYear(),n0.getMonth()-5+k,1);return[t.toLocaleDateString("es-AR",{month:"short"}),iso(t),iso(new Date(t.getFullYear(),t.getMonth()+1,0))]});
+  const ev=(await Promise.all(ms.map(a=>P(a[1],a[2])))).map(a=>a[0]);
+  const x=r[0],i=inv[0]||{},o=du[0],bad=cons.filter(c=>!c.ok);
+  const opts=[["hoy","Hoy"],["7","Últimos 7 días"],["30","Últimos 30 días"],["mes","Mes actual"],["ant","Mes anterior"],["anio","Año actual"],["custom","Personalizado"]];
+  $("#main").innerHTML=`<h2>Dashboard</h2>
+  ${bad.map(c=>`<div class="al">Inconsistencia: ${esc(c.chequeo)} (${esc(c.detalle)})</div>`).join("")}
+  ${dif.length?`<div class="al">Hay ${dif.length} período(s) del inversor sin liquidar o desactualizados. Revisá "Cuenta del inversor".</div>`:""}
+  <div class="row"><div><label>Período</label><select id="per">${opts.map(o=>`<option value="${o[0]}" ${o[0]==st.per?"selected":""}>${o[1]}</option>`).join("")}</select></div>
+  ${st.per=="custom"?`<div><label>Desde</label><input id="pd" type="date" value="${st.d||""}"></div><div><label>Hasta</label><input id="ph" type="date" value="${st.h||""}"></div><div><button class="b" id="ap">Aplicar</button></div>`:""}</div>
+  <h3>Ventas</h3><div class="g">${K("Ventas de hoy",$m(vh[0].facturacion))}${K("Ventas del mes",$m(vm[0].facturacion))}${K("Ventas históricas",$m(vt[0].facturacion))}
+  ${K("Operaciones",x.operaciones)}${K("Unidades vendidas",nn(x.unidades))}${K("Ticket promedio",$m(x.ticket_promedio))}${K("Pendiente de cobro",$m(x.pendiente_de_cobro))}</div>
+  <h3>Resultados del período</h3><div class="g">${K("Facturación",$m(x.facturacion))}${K("Costo de mercadería vendida",$m(x.costo_mercaderia))}${K("Gastos operativos",$m(x.gastos_operativos))}
+  ${K("Ganancia bruta",$m(x.ganancia_bruta))}${K("Ganancia neta",$m(x.ganancia_neta),x.ganancia_neta<0?"neg":"pos")}${K("Rentabilidad",nn(x.rentabilidad_pct)+" %")}</div>
+  <h3>Evolución de los últimos 6 meses</h3>${chart(ms.map(a=>a[0]),[{n:"Ventas",c:"#d2ad6a",v:ev.map(e=>+e.facturacion)},{n:"Costos + gastos",c:"#8a8272",v:ev.map(e=>+e.costo_mercaderia+ +e.gastos_operativos)},{n:"Ganancia neta",c:"#6cc48f",v:ev.map(e=>+e.ganancia_neta)}])}
+  <h3>Caja</h3><div class="g">${K("Dinero disponible en caja",$m(caja),caja<0?"neg":"")}</div>
+  <h3>Inversor</h3><div class="g">${K("Ganancias generadas",$m(i.ganancias_generadas))}${K("Capital reinvertido",$m(i.reinvertido_acumulado))}${K("Retiros",$m(i.retirado))}${K("Saldo disponible",$m(i.saldo_disponible),i.saldo_disponible<0?"neg":"pos")}</div>
+  <h3>Dueño</h3><div class="g">${K("Ganancia acumulada",$m(o.ganancias_acumuladas))}${K("Retiros",$m(o.retiros))}${K("Saldo",$m(o.saldo))}</div>
+  <p class="m">Las ventas pendientes no cuentan como facturación ni caja hasta marcarlas cobradas. Ganancia contable ≠ dinero en caja.</p>`;
+  $("#per").onchange=e=>{st.per=e.target.value;draw()};if($("#ap"))$("#ap").onclick=()=>{st.d=$("#pd").value;st.h=$("#ph").value;draw()};
+};
+
+const filaItem=()=>`<tr><td><input class="sku" list="skus" placeholder="SKU"></td><td><input class="desc"></td><td><input class="cant" type="number" step="any" value="1"></td><td><input class="pre" type="number" step="any"></td><td><input class="cos" type="number" step="any"></td><td class="r sub">-</td><td><button class="b s x">✕</button></td></tr>`;
+V.venta=async()=>{
+  prods=await q(sb.from("productos").select("*").eq("activo",true).order("sku"));
+  $("#main").innerHTML=`<h2>Registrar venta</h2><datalist id="skus">${prods.map(p=>`<option value="${esc(p.sku)}">${esc(p.descripcion)}</option>`).join("")}</datalist>
+  <div class="box"><div class="row"><div><label>Fecha</label><input id="vf" type="date" value="${hoy()}"></div><div><label>Medio de pago</label><input id="vm" placeholder="Efectivo, transferencia…"></div>
+  <div><label>Estado</label><select id="ve"><option value="cobrada">Cobrada</option><option value="pendiente">Pendiente de cobro</option></select></div><div><label>Observaciones</label><input id="vo"></div></div></div>
+  <div class="box t"><table><thead><tr><th>SKU</th><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th>Costo unit.</th><th class="r">Total</th><th></th></tr></thead><tbody id="its">${filaItem()}</tbody></table>
+  <p><button class="b s" id="add">+ Agregar producto</button></p>
+  <p class="m">Elegí un SKU del catálogo para completar descripción, precio y costo (podés cambiar el precio). Si el SKU no existe, escribí descripción y costo.</p></div>
+  <div class="g" id="tt"></div><p><button class="b" id="ok">Confirmar venta</button></p>`;
+  const calc=()=>{let T=0,C=0,U=0;$$("#its tr").forEach(tr=>{const g=c=>+tr.querySelector(c).value||0,s=g(".cant")*g(".pre");T+=s;C+=g(".cant")*g(".cos");U+=g(".cant");tr.querySelector(".sub").textContent=$m(s)});
+    $("#tt").innerHTML=K("Unidades",nn(U))+K("Total vendido",$m(T))+K("Costo de mercadería",$m(C))+K("Ganancia bruta",$m(T-C),"pos")+K("Margen",T?nn((T-C)/T*100)+" %":"-")};
+  $("#its").oninput=e=>{const tr=e.target.closest("tr");if(e.target.classList.contains("sku")){const p=prods.find(p=>p.sku.toUpperCase()==e.target.value.trim().toUpperCase());
+    if(p){tr.querySelector(".desc").value=p.descripcion;tr.querySelector(".pre").value=p.precio_venta;tr.querySelector(".cos").value=p.costo}}calc()};
+  $("#its").onclick=e=>{if(e.target.classList.contains("x")&&$$("#its tr").length>1){e.target.closest("tr").remove();calc()}};
+  $("#add").onclick=()=>$("#its").insertAdjacentHTML("beforeend",filaItem());calc();
+  $("#ok").onclick=async()=>{const items=$$("#its tr").map(tr=>{const g=c=>tr.querySelector(c).value.trim(),o={sku:g(".sku"),cantidad:+g(".cant")};
+    if(g(".desc"))o.descripcion=g(".desc");if(g(".pre")!=="")o.precio_unitario=+g(".pre");if(g(".cos")!=="")o.costo_unitario=+g(".cos");return o});
+    if(!confirm("¿Confirmar la venta?"))return;
+    if(await act(()=>rpc("crear_venta",{p_fecha:$("#vf").value,p_items:items,p_medio:$("#vm").value||null,p_estado:$("#ve").value,p_obs:$("#vo").value||null}),"Venta registrada"))V.venta()};
+};
+
+V.hist=async()=>{
+  const rows=await q(sb.from("ventas").select("*,venta_items(sku,descripcion,cantidad)").order("numero",{ascending:false}).limit(500));
+  $("#main").innerHTML=`<h2>Historial de ventas</h2><div class="row box"><div><label>Buscar (N°, SKU, descripción, medio)</label><input id="bq"></div><div><label>Desde</label><input id="bd" type="date"></div><div><label>Hasta</label><input id="bh" type="date"></div></div><div class="box t" id="bt"></div>`;
+  const pint=()=>{const s=$("#bq").value.toLowerCase(),d=$("#bd").value,h=$("#bh").value;
+    const f=rows.filter(v=>(!d||v.fecha>=d)&&(!h||v.fecha<=h)&&(!s||(v.numero+" "+(v.medio_pago||"")+" "+v.venta_items.map(i=>i.sku+" "+i.descripcion).join(" ")).toLowerCase().includes(s)));
+    $("#bt").innerHTML=`<table><thead><tr><th>N°</th><th>Fecha</th><th>Detalle</th><th class="r">Cant.</th><th class="r">Total</th><th class="r">Costo</th><th class="r">Ganancia</th><th>Medio</th><th>Estado</th><th></th></tr></thead><tbody>${f.map(v=>`<tr><td>#${v.numero}</td><td>${v.fecha}</td>
+    <td>${v.venta_items.map(i=>esc(i.sku)+" × "+nn(i.cantidad)).join(", ")}</td><td class="r">${nn(v.unidades)}</td><td class="r">${$m(v.total)}</td><td class="r">${$m(v.costo_total)}</td><td class="r">${$m(v.ganancia_bruta)}</td><td>${esc(v.medio_pago)}</td>
+    <td><span class="tag ${v.estado}">${v.estado}</span>${v.anulada_motivo?` <span class="m">${esc(v.anulada_motivo)}</span>`:""}</td><td>${v.estado=="pendiente"?`<button class="b s" data-c="${v.id}">Cobrar</button> `:""}${v.estado!="anulada"?`<button class="b s" data-a="${v.id}">Anular</button>`:""}</td></tr>`).join("")||'<tr><td colspan="10" class="m">Sin resultados</td></tr>'}</tbody></table><p class="m">Las ventas anuladas se conservan pero no cuentan en los resultados.</p>`;
+    $$("[data-c]").forEach(b=>b.onclick=async()=>{if(await act(()=>rpc("marcar_cobrada",{p_venta:b.dataset.c}),"Venta cobrada"))draw()});
+    $$("[data-a]").forEach(b=>b.onclick=async()=>{const m=prompt("Motivo de la anulación:");if(m&&confirm("¿Anular la venta? Se revertirán caja y stock."))if(await act(()=>rpc("anular_venta",{p_venta:b.dataset.a,p_motivo:m}),"Venta anulada"))draw()})};
+  ["#bq","#bd","#bh"].forEach(s=>$(s).oninput=pint);pint();
+};
+
+V.prod=async()=>{
+  const rows=await q(sb.from("productos").select("*").order("sku"));
+  $("#main").innerHTML=`<h2>Productos / Catálogo</h2><div class="box row"><div><label>SKU</label><input id="ps"></div><div><label>Descripción</label><input id="pdn"></div><div><label>Categoría</label><input id="pc"></div>
+  <div><label>Precio de venta</label><input id="pp" type="number" step="any"></div><div><label>Costo</label><input id="pk" type="number" step="any"></div><div><label>Stock (opcional)</label><input id="pt" type="number" step="any"></div><div><button class="b" id="pg">Guardar</button></div></div>
+  <div class="box t"><table><thead><tr><th>SKU</th><th>Descripción</th><th>Categoría</th><th class="r">Precio</th><th class="r">Costo</th><th class="r">Margen s/costo</th><th class="r">Stock</th><th>Estado</th><th></th></tr></thead><tbody>${rows.map(p=>`<tr><td>${esc(p.sku)}</td><td>${esc(p.descripcion)}</td><td>${esc(p.categoria)}</td><td class="r">${$m(p.precio_venta)}</td><td class="r">${$m(p.costo)}</td><td class="r">${p.margen_sobre_costo_pct==null?"-":nn(p.margen_sobre_costo_pct)+" %"}</td><td class="r">${p.stock==null?"-":nn(p.stock)}</td><td>${p.activo?"Activo":"Inactivo"}</td><td><button class="b s" data-t="${p.id}" data-v="${p.activo}">${p.activo?"Desactivar":"Activar"}</button></td></tr>`).join("")}</tbody></table></div>`;
+  $("#pg").onclick=async()=>{if(await act(()=>q(sb.from("productos").insert({sku:$("#ps").value.trim(),descripcion:$("#pdn").value.trim(),categoria:$("#pc").value||null,precio_venta:+$("#pp").value||0,costo:+$("#pk").value||0,stock:$("#pt").value===""?null:+$("#pt").value})),"Producto guardado"))draw()};
+  $$("[data-t]").forEach(b=>b.onclick=async()=>{if(await act(()=>q(sb.from("productos").update({activo:b.dataset.v!="true"}).eq("id",b.dataset.t))))draw()});
+};
+
+V.gasto=async()=>{
+  const[cats,rows]=await Promise.all([q(sb.from("categorias_gasto").select("*").order("nombre")),q(sb.from("gastos").select("*,categorias_gasto(nombre)").order("fecha",{ascending:false}).limit(300))]);
+  $("#main").innerHTML=`<h2>Gastos</h2><div class="box row"><div><label>Fecha</label><input id="gf" type="date" value="${hoy()}"></div><div><label>Categoría</label><select id="gc">${cats.filter(c=>c.activa).map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join("")}</select></div>
+  <div><label>Descripción</label><input id="gd"></div><div><label>Importe</label><input id="gi" type="number" step="any"></div><div><label>Medio de pago</label><input id="gm"></div><div><label>Comprobante (URL, opcional)</label><input id="gu"></div>
+  <div><button class="b" id="gg">Registrar</button> <button class="b s" id="gn">Nueva categoría</button></div></div>
+  <p class="m">"Compras de mercadería" mueve la caja pero no resta de la ganancia (el costo ya entra por cada venta).</p>
+  <div class="box t"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th class="r">Importe</th><th>Medio</th><th>Estado</th><th></th></tr></thead><tbody>${rows.map(g=>`<tr><td>${g.fecha}</td><td>${esc(g.categorias_gasto?.nombre)}</td><td>${esc(g.descripcion)}</td><td class="r">${$m(g.importe)}</td><td>${esc(g.medio_pago)}</td><td>${g.anulado?'<span class="tag anulada">anulado</span>':""}</td><td>${g.anulado?"":`<button class="b s" data-a="${g.id}">Anular</button>`}</td></tr>`).join("")}</tbody></table></div>`;
+  $("#gg").onclick=async()=>{if(await act(()=>rpc("crear_gasto",{p_fecha:$("#gf").value,p_categoria:$("#gc").value,p_descripcion:$("#gd").value,p_importe:+$("#gi").value,p_medio:$("#gm").value||null,p_comprobante:$("#gu").value||null}),"Gasto registrado"))draw()};
+  $("#gn").onclick=async()=>{const n=prompt("Nombre de la nueva categoría:");if(n&&await act(()=>q(sb.from("categorias_gasto").insert({nombre:n.trim()})),"Categoría creada"))draw()};
+  $$("[data-a]").forEach(b=>b.onclick=async()=>{const m=prompt("Motivo de la anulación:");if(m&&await act(()=>rpc("anular_gasto",{p_gasto:b.dataset.a,p_motivo:m}),"Gasto anulado"))draw()});
+};
+
+V.inv=async()=>{
+  const adm=me.rol=="admin";
+  const[rs,movs,liq,acu]=await Promise.all([rpc("resumen_inversor"),q(sb.from("cuenta_inversor_mov").select("*").order("seq",{ascending:false}).limit(200)),q(sb.from("v_liquidaciones_inversor").select("*").order("periodo",{ascending:false})),q(sb.from("acuerdo_inversor").select("*").eq("activo",true).maybeSingle())]);
+  const dif=adm?await rpc("periodos_con_diferencias"):[],r=rs[0]||{},BASE={facturacion:"facturación",ganancia_bruta:"ganancia bruta",ganancia_neta:"ganancia neta"};
+  $("#main").innerHTML=`<h2>Cuenta del inversor</h2>
+  ${acu?`<p class="m">Acuerdo: <b>${esc(acu.nombre)}</b> · ${nn(acu.porcentaje)} % sobre la <b>${BASE[acu.base_calculo]}</b> · liquidación ${esc(acu.modalidad_liquidacion)} · desde ${acu.fecha_inicio}</p>`:'<p class="err">No hay un acuerdo activo cargado.</p>'}
+  <div class="g">${K("Ganancias generadas",$m(r.ganancias_generadas))}${K("Ajustes",$m(r.ajustes))}${K("Capital reinvertido",$m(r.reinvertido_acumulado))}${K("Retirado",$m(r.retirado))}${K("Saldo disponible",$m(r.saldo_disponible),r.saldo_disponible<0?"neg":"pos")}</div>
+  ${adm?`<h3>Registrar movimiento</h3><div class="box row"><div><label>Importe</label><input id="mi" type="number" step="any"></div><div><label>Fecha</label><input id="mf" type="date" value="${hoy()}"></div><div><label>Observaciones</label><input id="mo"></div>
+  <div><button class="b" id="mr">Registrar reinversión</button> <button class="b s" id="mt">Registrar retiro</button></div></div>
+  <p class="m">La reinversión es una transferencia interna: baja el saldo disponible, no es ganancia nueva ni mueve la caja. No se puede superar el saldo.</p>
+  <h3>Liquidación mensual</h3><div class="box row"><div><label>Mes</label><input id="lm" type="month"></div><div><label><input id="lp" type="checkbox" style="width:auto"> Parcial (mes en curso)</label></div><div><button class="b" id="lq">Liquidar mes</button></div></div>
+  ${dif.length?`<div class="box t"><table><thead><tr><th>Período</th><th class="r">Liquidado</th><th class="r">Calculado</th><th class="r">Diferencia</th><th>Estado</th></tr></thead><tbody>${dif.map(d=>`<tr><td>${d.periodo.slice(0,7)}</td><td class="r">${$m(d.liquidado)}</td><td class="r">${$m(d.calculado)}</td><td class="r">${$m(d.diferencia)}</td><td>${d.estado}</td></tr>`).join("")}</tbody></table><p class="m">Para corregir un período, liquidá ese mes: se genera un ajuste identificable sin alterar la liquidación original.</p></div>`:""}
+  ${acu?`<h3>Configurar acuerdo</h3><div class="box row"><div><label>Porcentaje</label><input id="ap" type="number" step="any" value="${acu.porcentaje}"></div><div><label>Base de cálculo</label><select id="ab">${Object.entries(BASE).map(([k,v])=>`<option value="${k}" ${k==acu.base_calculo?"selected":""}>${v}</option>`).join("")}</select></div><div><button class="b s" id="as">Guardar acuerdo</button></div></div>`:""}`:""}
+  <h3>Liquidaciones</h3><div class="box t"><table><thead><tr><th>Período</th><th>Tipo</th><th class="r">Importe inversor</th></tr></thead><tbody>${liq.map(l=>`<tr><td>${l.periodo.slice(0,7)}</td><td>${l.tipo}</td><td class="r">${$m(l.importe_inversor)}</td></tr>`).join("")}</tbody></table></div>
+  <h3>Movimientos</h3><div class="box t"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th class="r">Importe</th><th class="r">Saldo anterior</th><th class="r">Saldo posterior</th><th>Obs.</th></tr></thead><tbody>${movs.map(m=>`<tr><td>${m.fecha}</td><td>${m.tipo}</td><td>${esc(m.concepto)}</td><td class="r">${$m(m.importe)}</td><td class="r">${$m(m.saldo_anterior)}</td><td class="r">${$m(m.saldo_posterior)}</td><td>${esc(m.observaciones)}</td></tr>`).join("")}</tbody></table></div>`;
+  if(!adm)return;
+  const mv=f=>async()=>{if(await act(()=>rpc(f,{p_importe:+$("#mi").value,p_fecha:$("#mf").value,p_obs:$("#mo").value||null}),"Movimiento registrado"))draw()};
+  $("#mr").onclick=mv("registrar_reinversion");$("#mt").onclick=mv("registrar_retiro_inversor");
+  $("#lq").onclick=async()=>{if($("#lm").value&&await act(()=>rpc("liquidar_periodo",{p_periodo:$("#lm").value+"-01",p_forzar:$("#lp").checked}),"Período liquidado"))draw()};
+  if($("#as"))$("#as").onclick=async()=>{if(confirm("Cambiar el acuerdo afecta las liquidaciones futuras. ¿Continuar?")&&await act(()=>q(sb.from("acuerdo_inversor").update({porcentaje:+$("#ap").value,base_calculo:$("#ab").value}).eq("id",acu.id)),"Acuerdo guardado"))draw()};
+};
+V.caja=async()=>{
+  const[c,rows,du]=await Promise.all([rpc("caja_actual"),q(sb.from("movimientos_caja").select("*").order("created_at",{ascending:false}).limit(300)),rpc("resumen_dueno")]);
+  const T={venta:"Venta",ajuste_venta:"Ajuste de venta",anulacion_venta:"Anulación de venta",gasto:"Gasto",anulacion_gasto:"Anulación de gasto",aporte_capital:"Aporte de capital",retiro_inversor:"Retiro del inversor",retiro_dueno:"Retiro del dueño",otro_ingreso:"Otro ingreso",otro_egreso:"Otro egreso"};
+  $("#main").innerHTML=`<h2>Caja y movimientos</h2><div class="g">${K("Dinero disponible en caja",$m(c),c<0?"neg":"pos")}${K("Ganancia acumulada del dueño",$m(du[0].ganancias_acumuladas))}${K("Retiros del dueño",$m(du[0].retiros))}${K("Saldo del dueño",$m(du[0].saldo))}</div>
+  <p class="m">La caja es el dinero real que entró y salió. No es lo mismo que la ganancia contable. Las reinversiones del inversor no mueven la caja.</p>
+  <h3>Registrar movimiento</h3><div class="box row"><div><label>Tipo</label><select id="ct"><option value="retiro_dueno">Retiro del dueño</option><option value="aporte_capital">Aporte de capital</option><option value="otro_ingreso">Otro ingreso</option><option value="otro_egreso">Otro egreso</option></select></div>
+  <div><label>Importe</label><input id="ci" type="number" step="any"></div><div><label>Concepto</label><input id="cc"></div><div><label>Fecha</label><input id="cf" type="date" value="${hoy()}"></div><div><button class="b" id="cg">Registrar</button></div></div>
+  <div class="box t"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th class="r">Importe</th><th>Medio</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${m.fecha}</td><td>${T[m.tipo]||m.tipo}</td><td>${esc(m.concepto)}</td><td class="r" style="color:var(--${m.importe<0?"bad":"ok"})">${$m(m.importe)}</td><td>${esc(m.medio_pago)}</td></tr>`).join("")}</tbody></table></div>`;
+  $("#cg").onclick=async()=>{if(await act(()=>rpc("registrar_movimiento_caja",{p_tipo:$("#ct").value,p_importe:+$("#ci").value,p_concepto:$("#cc").value,p_fecha:$("#cf").value}),"Movimiento registrado"))draw()};
+};
+
+V.rep=async()=>{
+  const t=hoy(),d=st.rd||t.slice(0,8)+"01",h=st.rh||t;
+  const[r,vs,gs]=await Promise.all([rpc("resumen_periodo",{p_desde:d,p_hasta:h}),q(sb.from("ventas").select("*,venta_items(sku,descripcion,cantidad,total,costo_total)").eq("estado","cobrada").gte("fecha",d).lte("fecha",h).order("fecha")),q(sb.from("gastos").select("*,categorias_gasto(nombre,afecta_resultado)").eq("anulado",false).gte("fecha",d).lte("fecha",h))]);
+  const x=r[0],dia={},sku={},cat={},mes={};
+  vs.forEach(v=>{const a=dia[v.fecha]??=[0,0,0,0];a[0]++;a[1]+=+v.unidades;a[2]+=+v.total;a[3]+=+v.costo_total;const m=mes[v.fecha.slice(0,7)]??=[0,0];m[0]+=+v.total;m[1]+=+v.ganancia_bruta;
+    v.venta_items.forEach(i=>{const s=sku[i.sku]??={d:i.descripcion,u:0,t:0,c:0};s.u+=+i.cantidad;s.t+=+i.total;s.c+=+i.costo_total})});
+  gs.forEach(g=>{const n=g.categorias_gasto?.nombre||"-";cat[n]=(cat[n]||0)+ +g.importe});
+  const D=Object.entries(dia).map(([f,a])=>[f,a[0],a[1],a[2],a[3],a[2]-a[3]]),S=Object.entries(sku).sort((a,b)=>b[1].u-a[1].u).map(([k,s])=>[k,s.d,s.u,s.t,s.c,s.t-s.c]),G=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
+  const tb=(id,head,rows,ty)=>`<div class="box t"><div class="row np"><div><b>${id}</b></div><div style="flex:none"><button class="b s" data-e="${id}">Exportar CSV (Excel)</button></div></div><table><thead><tr>${head.map((x,i)=>`<th class="${ty[i]=="t"?"":"r"}">${x}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((v,i)=>`<td class="${ty[i]=="t"?"":"r"}">${ty[i]=="m"?$m(v):ty[i]=="n"?nn(v):esc(v)}</td>`).join("")}</tr>`).join("")||'<tr><td class="m">Sin datos</td></tr>'}</tbody></table></div>`;
+  const tabs={"Ventas por día":[["Fecha","Operaciones","Unidades","Facturación","Costo","Ganancia bruta"],D],"Ventas por SKU (más vendidos primero)":[["SKU","Descripción","Unidades","Facturación","Costo","Ganancia bruta"],S],"Gastos por categoría":[["Categoría","Importe"],G]};
+  $("#main").innerHTML=`<h2>Reportes</h2><div class="row box np"><div><label>Desde</label><input id="rd" type="date" value="${d}"></div><div><label>Hasta</label><input id="rh" type="date" value="${h}"></div><div style="flex:none"><button class="b" id="ra">Aplicar</button> <button class="b s" id="rp">Imprimir / PDF</button></div></div>
+  <p class="m">Período: ${d} al ${h} · solo ventas cobradas</p>
+  <div class="g">${K("Facturación",$m(x.facturacion))}${K("Costo de mercadería",$m(x.costo_mercaderia))}${K("Gastos operativos",$m(x.gastos_operativos))}${K("Ganancia bruta",$m(x.ganancia_bruta))}${K("Ganancia neta",$m(x.ganancia_neta),x.ganancia_neta<0?"neg":"pos")}${K("Rentabilidad",nn(x.rentabilidad_pct)+" %")}${K("Unidades",nn(x.unidades))}</div>
+  <h3>Evolución mensual</h3>${chart(Object.keys(mes),[{n:"Ventas",c:"#d2ad6a",v:Object.values(mes).map(a=>a[0])},{n:"Ganancia bruta",c:"#6cc48f",v:Object.values(mes).map(a=>a[1])}])}
+  <h3>Ventas por día</h3>${tb("Ventas por día",tabs["Ventas por día"][0],D,"tnnmmm")}
+  <h3>Ventas por SKU</h3>${tb("Ventas por SKU",tabs["Ventas por SKU (más vendidos primero)"][0],S,"ttnmmm")}
+  <h3>Gastos</h3>${tb("Gastos por categoría",["Categoría","Importe"],G,"tm")}`;
+  $("#ra").onclick=()=>{st.rd=$("#rd").value;st.rh=$("#rh").value;draw()};$("#rp").onclick=()=>print();
+  const data={"Ventas por día":[tabs["Ventas por día"][0],D],"Ventas por SKU":[tabs["Ventas por SKU (más vendidos primero)"][0],S],"Gastos por categoría":[["Categoría","Importe"],G]};
+  $$("[data-e]").forEach(b=>b.onclick=()=>csv(b.dataset.e.replace(/\s+/g,"_")+"_"+d+"_"+h,...data[b.dataset.e]));
+};
+boot();
+</script></body></html>
