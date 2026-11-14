@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GYA DECO · Gestión Boutique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F8F6F2;
+  --bg-soft:#F1EDE6;
+  --card:#FFFFFF;
+  --ink:#22201E;
+  --mut:#756E65;
+  --line:#E6E0D6;
+  --gold:#9C7D4C;
+  --gold-soft:#F4EFE6;
+  --accent:#22201E;
+  --ok:#3D7A56;
+  --ok-bg:#EDF5F0;
+  --bad:#B54A42;
+  --bad-bg:#F9ECEB;
+  --warn-bg:#FBF5EA;
+  --radius:6px;
+  --shadow:0 4px 20px rgba(34,32,30,.04);
+  --font-serif:'Cormorant Garamond', Georgia, serif;
+  --font-sans:'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:400 14px/1.6 var(--font-sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-text-size-adjust:100%}
+
+/* Layout principal */
+#app{display:flex;min-height:100vh}
+aside{width:256px;background:var(--card);border-right:1px solid var(--line);padding:32px 18px 24px;flex:none;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand-wrap{text-align:center;padding-bottom:24px;margin-bottom:20px;border-bottom:1px solid var(--line)}
+aside h1{font:500 24px/1.1 var(--font-serif);letter-spacing:.26em;color:var(--ink);margin:0;text-transform:uppercase}
+.brand-sub{font:600 9.5px/1 var(--font-sans);letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-top:8px;display:block}
+#nv{display:flex;flex-direction:column;gap:4px;flex:1}
+aside button{display:flex;align-items:center;width:100%;text-align:left;background:transparent;border:0;color:var(--mut);padding:11px 14px;border-radius:var(--radius);cursor:pointer;font:500 13.5px/1.3 var(--font-sans);transition:all .2s ease}
+aside button:hover{background:var(--bg);color:var(--ink)}
+aside button.on{background:var(--gold-soft);color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--gold)}
+#out{margin-top:auto;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:12.5px}
+#out:hover{color:var(--bad);background:var(--bad-bg)}
+
+main{flex:1;padding:36px 44px 60px;min-width:0;max-width:1620px;margin:0 auto}
+
+/* Hero Editorial Header por Sección */
+.hero-sec{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding-bottom:20px;margin-bottom:26px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.hero-eyebrow{font:600 10.5px/1 var(--font-sans);letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;display:block}
+h2{font:500 34px/1.15 var(--font-serif);color:var(--ink);margin:0;letter-spacing:-.01em}
+.hero-sub{color:var(--mut);font-size:13.5px;margin:6px 0 0;max-width:620px}
+.hero-visual{position:relative;border-radius:8px;overflow:hidden;margin-bottom:28px;border:1px solid var(--line);background:var(--bg-soft);display:grid;grid-template-columns:1.35fr 1fr;min-height:190px}
+.hero-copy{padding:28px 32px;display:flex;flex-direction:column;justify-content:center}
+.hero-copy h4{font:500 26px/1.2 var(--font-serif);margin:0 0 8px;color:var(--ink)}
+.hero-copy p{margin:0;color:var(--mut);font-size:13.5px;max-width:460px}
+.hero-img{background:linear-gradient(125deg, rgba(34,32,30,.12), rgba(156,125,76,.18)), url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80') center/cover no-repeat;min-height:170px}
+@media(max-width:850px){.hero-visual{grid-template-columns:1fr}.hero-img{height:130px}}
+
+h3{font:600 11px/1.2 var(--font-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:28px 0 12px}
+
+/* KPIs & Cards */
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:14px}
+.k{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);transition:transform .2s ease,border-color .2s ease}
+.k:hover{border-color:#D5CBB9;transform:translateY(-1px)}
+.k span{display:block;color:var(--mut);font-size:12px;font-weight:500;margin-bottom:6px}
+.k b{font:500 25px/1.15 var(--font-serif);color:var(--ink);letter-spacing:-.01em}
+.pos b{color:var(--ok)}.neg b{color:var(--bad)}
+
+.box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:16px;box-shadow:var(--shadow);overflow-x:auto}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}.row>div{flex:1;min-width:140px}
+
+/* Formularios */
+label{display:block;color:var(--mut);font-size:11.5px;font-weight:600;letter-spacing:.04em;margin-bottom:6px}
+input,select{width:100%;padding:10px 12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);font:400 13.5px/1.4 var(--font-sans);transition:border-color .2s,background .2s,box-shadow .2s}
+input:focus,select:focus{outline:none;background:var(--card);border-color:var(--gold);box-shadow:0 0 0 3px rgba(156,125,76,.12)}
+input:disabled,select:disabled{opacity:.55;cursor:not-allowed}
+
+/* Botones */
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:var(--font-sans)}
+button.b{background:var(--ink);color:#FFFFFF;border:1px solid var(--ink);border-radius:var(--radius);padding:10px 18px;font:600 13px/1.2 var(--font-sans);letter-spacing:.03em;cursor:pointer;transition:all .2s ease}
+button.b:hover{background:#3A3632;border-color:#3A3632;transform:translateY(-1px)}
+button.b:active{transform:translateY(0)}
+button.s{background:var(--card);color:var(--ink);border:1px solid #D4CBBF}
+button.s:hover{background:var(--gold-soft);border-color:var(--gold);color:var(--ink)}
+
+/* Tablas */
+.t{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;font-size:13.5px}
+th{color:var(--mut);font:600 10.5px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.12em;background:var(--bg-soft);border-top:1px solid var(--line)}
+tbody tr{transition:background .15s ease}
+tbody tr:hover{background:#FAF8F4}
+td input{min-width:74px;padding:7px 9px}
+td.r,th.r{text-align:right}
+
+/* Tags & Badges */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font:600 11px/1.2 var(--font-sans);letter-spacing:.03em;background:var(--bg-soft);color:var(--mut);border:1px solid var(--line)}
+.tag.anulada{color:var(--bad);background:var(--bad-bg);border-color:#EBCAC7}
+.tag.pendiente{color:var(--gold);background:var(--warn-bg);border-color:#EBDDC3}
+.tag.cobrada{color:var(--ok);background:var(--ok-bg);border-color:#C6DFD0}
+
+.m{color:var(--mut);font-size:13px}.err{color:var(--bad);font-weight:500}
+.al{background:var(--bad-bg);border:1px solid #E5BFBC;color:var(--bad);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:13.5px}
+
+#toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#FFF;border-left:4px solid var(--gold);padding:13px 18px;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.18);display:none;max-width:85vw;z-index:99;font-size:13.5px}
+
+/* Login Editorial */
+#login-wrap{min-height:100vh;display:grid;grid-template-columns:1.15fr 1fr;background:var(--bg)}
+.login-art{background:linear-gradient(to top, rgba(24,22,20,.65), rgba(24,22,20,.15)), url('https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=85') center/cover no-repeat;padding:48px;display:flex;flex-direction:column;justify-content:flex-end;color:#F8F6F2}
+.login-art blockquote{font:400 italic 28px/1.3 var(--font-serif);margin:0 0 12px;max-width:460px}
+.login-art span{font:600 11px/1 var(--font-sans);letter-spacing:.22em;text-transform:uppercase;color:#DFC8A2}
+#login{width:100%;max-width:400px;margin:auto;padding:36px 24px}
+#login h1{font:500 34px/1.1 var(--font-serif);letter-spacing:.28em;color:var(--ink);text-align:center;margin:0}
+#login .brand-sub{text-align:center;margin-bottom:30px}
+@media(max-width:860px){#login-wrap{grid-template-columns:1fr}.login-art{display:none}}
+
+.g2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}@media(max-width:960px){.g2{grid-template-columns:1fr}}
+tr[data-i]{cursor:pointer}tr[data-i]:hover,tr.sel{background:var(--gold-soft)!important}
+.ln{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}.ln span:first-child{color:var(--mut)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0;padding:16px 18px;border-radius:var(--radius);background:var(--bg-soft);border:1px solid var(--line)}
+.tot span{font:600 11px/1 var(--font-sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.tot b{font:600 30px/1 var(--font-serif);color:var(--ink)}
+
+#kit .sk{min-width:120px}#kit .n{min-width:220px}#kit .cg{min-width:140px}#kit .pv{min-width:120px}#kit .nv{display:none;width:max-content;margin-top:4px}#kit .nv.on{display:block}
+#kr th,#kr td{white-space:normal}#kr td.r{white-space:nowrap}#kr td:nth-child(2){min-width:120px}
+details.box summary{cursor:pointer;font-weight:500;padding:4px 0}
+
+@media print{aside,.np,.hero-visual{display:none!important}body{background:#fff;color:#000}.k,.box{border-color:#ccc;background:#fff;box-shadow:none}th{color:#333;background:#f5f5f5}.k b{color:#000}}
+
+/* ===== RESPONSIVE MOBILE-FIRST ===== */
+#mnu,#cur{display:none}
+@media screen and (max-width:940px){
+ #app{flex-direction:column}
+ aside{width:100%;height:auto;position:sticky;top:0;z-index:30;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-right:0;border-bottom:1px solid var(--line);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+ .brand-wrap{border:0;padding:0;margin:0;text-align:left}
+ .brand-sub{display:none}
+ #ah{display:flex;align-items:center;gap:12px}
+ aside h1{margin:0;font-size:19px;letter-spacing:.2em}
+ #cur{display:block;flex:1;color:var(--gold);font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+ #mnu{display:flex;align-items:center;justify-content:center;flex:none;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:var(--radius);padding:7px 12px;font-size:18px;line-height:1;cursor:pointer}
+ #nv{display:none;margin-top:12px;padding-top:8px;border-top:1px solid var(--line);max-height:calc(100vh - 70px);overflow-y:auto}
+ #nv.open{display:flex}
+ #nv button{padding:13px 12px;font-size:14.5px;border-bottom:1px solid var(--bg-soft);border-radius:4px}
+ #out{margin-top:8px;border-top:1px solid var(--line)}
+ main{padding:20px 16px 40px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));width:100%}
+ h2{font-size:28px}
+}
+@media screen and (max-width:680px){
+ body{font-size:14.5px}.box{padding:16px}
+ .g{grid-template-columns:1fr 1fr;gap:10px}.k{padding:14px}.k b{font-size:20px}
+ input,select{font-size:16px;padding:11px 12px}
+ button.b{min-height:44px;padding:11px 16px}
+ .row{gap:10px}.row>div{min-width:calc(50% - 10px)}
+ .row>div[style*="flex:none"]{flex:1 1 100%!important;min-width:100%;max-width:100%}.row>div[style*="flex:none"] button{width:100%;margin:0 0 6px}
+ #toast{left:14px;right:14px;bottom:max(14px,env(safe-area-inset-bottom));max-width:none}
+ #main table:not(.ft),#main table:not(.ft) tbody{display:block;width:100%}
+ #main table:not(.ft) thead{display:none}
+ #main table:not(.ft) tr{display:block;margin:0 0 12px;border:1px solid var(--line);border-radius:var(--radius);padding:8px 14px;background:var(--card)}
+ #main table:not(.ft) td{display:block;border:0;border-bottom:1px dashed var(--line);padding:8px 0;text-align:right!important;white-space:normal!important}
+ #main table:not(.ft) td:last-child{border-bottom:0}
+ #main table:not(.ft) td::before{content:attr(data-l);float:left;margin-right:12px;color:var(--mut);font-size:12px;font-weight:500;text-align:left}
+ #main table:not(.ft) td::after{content:"";display:block;clear:both}
+ #main table:not(.ft) td[colspan]{text-align:left!important}#main table:not(.ft) td[colspan]::before,#main table:not(.ft) td[data-l=""]::before{content:none}
+ #main table:not(.ft) td button{margin:3px 0 3px 6px}
+ .ft thead{display:none}.ft,.ft tbody{display:block;width:100%}
+ .ft tr{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px;background:var(--bg)}
+ .ft td{display:block;border:0;padding:0;white-space:normal}
+ .ft td::before{content:attr(data-l);display:block;font-size:11px;color:var(--mut);margin-bottom:4px;font-weight:600}
+ .ft td:nth-child(1),.ft td:nth-child(2),.ft td:last-child{grid-column:1/-1}
+ .ft td:last-child::before{content:none}
+ .ft td input,.ft td select{min-width:0!important;width:100%}
+ .ft td .nv.on{display:inline-block;margin:0 0 4px}
+}
+
+
+/* =========================================================
+   GYA DECO · REDISEÑO VISUAL PROFESIONAL
+   Capa exclusivamente visual: no modifica lógica ni datos.
+   ========================================================= */
+:root{
+  --bg:#F5F3EF;
+  --bg-soft:#EEEAE3;
+  --card:#FFFFFF;
+  --ink:#26231F;
+  --mut:#777168;
+  --line:#E7E1D8;
+  --gold:#A88755;
+  --gold-soft:#F3EDE3;
+  --accent:#26231F;
+  --ok:#397456;
+  --ok-bg:#EAF3ED;
+  --bad:#B64D45;
+  --bad-bg:#F9ECEA;
+  --warn-bg:#F8F1E5;
+  --radius:12px;
+  --shadow:0 8px 26px rgba(39,33,25,.045);
+  --font-serif:'Cormorant Garamond',Georgia,serif;
+  --font-sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(ellipse at 85% 0%,rgba(168,135,85,.055),transparent 32%),
+    var(--bg);
+  color:var(--ink);
+  letter-spacing:-.01em;
+}
+::selection{background:#E8D9C1;color:#26231F}
+:focus-visible{outline:3px solid rgba(168,135,85,.35);outline-offset:2px}
+
+/* Navegación */
+#app{min-height:100vh}
+aside{
+  width:270px;
+  padding:30px 18px 22px;
+  background:#292722;
+  color:#F8F5EF;
+  border:0;
+  box-shadow:8px 0 30px rgba(25,22,18,.07);
+}
+.brand-wrap{
+  border-bottom:1px solid rgba(255,255,255,.13);
+  padding:5px 8px 26px;
+  margin-bottom:24px;
+}
+aside h1{
+  color:#FAF7F1;
+  font-size:27px;
+  letter-spacing:.22em;
+}
+aside .brand-sub{
+  color:#C5A879;
+  letter-spacing:.2em;
+  font-size:9px;
+}
+#nv{gap:6px}
+aside button{
+  color:#C9C3B9;
+  border-radius:9px;
+  padding:12px 14px;
+  font-size:13px;
+  transition:background .2s,color .2s,transform .2s;
+}
+aside button:hover{
+  color:#FFF;
+  background:rgba(255,255,255,.075);
+  transform:translateX(2px);
+}
+aside button.on{
+  color:#FFF;
+  background:rgba(190,158,108,.19);
+  box-shadow:inset 3px 0 0 #C4A16C;
+}
+#out{
+  color:#C9C3B9;
+  border-top:1px solid rgba(255,255,255,.13);
+  margin-top:18px;
+}
+#out:hover{background:rgba(182,77,69,.15);color:#F3B4AD}
+
+/* Área de trabajo y encabezados */
+main{
+  max-width:1740px;
+  padding:42px clamp(22px,3.3vw,58px) 72px;
+}
+.hero-sec{
+  align-items:center;
+  padding-bottom:24px;
+  margin-bottom:28px;
+  border-bottom:1px solid #DED7CC;
+}
+.hero-eyebrow{
+  color:#A0804E;
+  font-size:10px;
+  letter-spacing:.2em;
+  margin-bottom:10px;
+}
+h2{
+  font-size:clamp(31px,3vw,42px);
+  line-height:1.04;
+  letter-spacing:-.025em;
+}
+.hero-sub{
+  margin-top:9px;
+  font-size:13px;
+  line-height:1.7;
+  color:#777168;
+}
+h3{
+  margin:32px 0 14px;
+  color:#9A7B4D;
+  font-size:10px;
+  letter-spacing:.17em;
+}
+
+/* Banner editorial */
+.hero-visual{
+  grid-template-columns:1.25fr .95fr;
+  min-height:220px;
+  border:1px solid #E4DCCE;
+  border-radius:14px;
+  background:#EDE8DF;
+  box-shadow:var(--shadow);
+  margin-bottom:30px;
+}
+.hero-copy{padding:34px clamp(22px,3vw,42px)}
+.hero-copy h4{font-size:31px;max-width:460px;line-height:1.08}
+.hero-copy p{font-size:13px;line-height:1.8}
+.hero-img{min-height:220px}
+
+/* Tarjetas y métricas */
+.g{gap:14px}
+.k{
+  position:relative;
+  min-height:112px;
+  padding:20px 21px;
+  border:1px solid #E9E4DC;
+  border-radius:12px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 3px 14px rgba(39,33,25,.025);
+  overflow:hidden;
+}
+.k:after{
+  content:"";
+  position:absolute;
+  top:0;left:0;bottom:0;
+  width:3px;
+  background:#C3A477;
+  opacity:.8;
+}
+.k span{
+  color:#827B71;
+  font-size:11px;
+  letter-spacing:.025em;
+  margin-bottom:10px;
+}
+.k b{
+  font-family:var(--font-sans);
+  font-size:clamp(19px,1.7vw,25px);
+  font-weight:650;
+  letter-spacing:-.045em;
+  overflow-wrap:anywhere;
+}
+.pos b{color:#397456}
+.neg b{color:#B64D45}
+.k:hover{
+  transform:translateY(-2px);
+  border-color:#D8C9B2;
+  box-shadow:0 10px 25px rgba(39,33,25,.06);
+}
+
+/* Paneles */
+.box{
+  padding:23px;
+  border:1px solid #E8E2D9;
+  border-radius:13px;
+  background:#FFF;
+  box-shadow:var(--shadow);
+  margin-bottom:17px;
+}
+.box h3:first-child{margin-top:0}
+.g2{gap:20px}
+.ln{padding:10px 0}
+.tot{
+  border-radius:11px;
+  background:#F5F1EA;
+  border-color:#E8DFD1;
+  padding:18px 20px;
+}
+.tot b{font-family:var(--font-sans);font-size:25px;font-weight:700;letter-spacing:-.04em}
+
+/* Formularios */
+label{
+  color:#6F695F;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+  margin-bottom:7px;
+}
+input,select{
+  min-height:42px;
+  padding:10px 13px;
+  background:#FAF9F6;
+  border:1px solid #E4DED4;
+  border-radius:8px;
+  color:#302D28;
+  font-size:13px;
+}
+input:hover,select:hover{border-color:#CFC3B1}
+input:focus,select:focus{
+  background:#FFF;
+  border-color:#AD8C5B;
+  box-shadow:0 0 0 3px rgba(168,135,85,.13);
+}
+input::placeholder{color:#AAA49A}
+
+/* Acciones */
+button.b{
+  min-height:40px;
+  padding:11px 18px;
+  border-radius:8px;
+  background:#292722;
+  border:1px solid #292722;
+  color:#FFF;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.015em;
+  box-shadow:0 3px 8px rgba(35,31,25,.08);
+}
+button.b:hover{
+  background:#474137;
+  border-color:#474137;
+  box-shadow:0 6px 15px rgba(35,31,25,.12);
+  transform:translateY(-1px);
+}
+button.b.s{
+  color:#4A443B;
+  background:#FFF;
+  border-color:#DCD4C8;
+  box-shadow:none;
+}
+button.b.s:hover{
+  color:#292722;
+  background:#F5F0E8;
+  border-color:#BDA47E;
+}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+/* Tablas */
+.t{border-radius:10px}
+table{border-spacing:0}
+th{
+  padding:13px 12px;
+  color:#716A60;
+  background:#F5F2ED;
+  border-top:1px solid #E8E2D9;
+  border-bottom:1px solid #E8E2D9;
+  font-size:9.5px;
+  letter-spacing:.11em;
+}
+th:first-child{border-radius:7px 0 0 0}
+th:last-child{border-radius:0 7px 0 0}
+td{
+  padding:13px 12px;
+  border-bottom:1px solid #F0ECE6;
+  color:#49443D;
+  font-size:12.5px;
+}
+tbody tr:hover{background:#FBF9F5}
+td b{color:#292722}
+td input,td select{border-radius:7px}
+.tag{
+  padding:5px 10px;
+  border-radius:30px;
+  font-size:10px;
+  font-weight:700;
+  border:1px solid transparent;
+}
+.tag.cobrada{background:#EAF3ED;color:#397456;border-color:#D4E6D9}
+.tag.pendiente{background:#F8F1E5;color:#987441;border-color:#EDE0C8}
+.tag.anulada{background:#F9ECEA;color:#B64D45;border-color:#F0D7D4}
+
+/* Mensajes */
+.al{
+  border-radius:9px;
+  padding:14px 17px;
+  line-height:1.65;
+}
+#toast{
+  bottom:25px;
+  right:25px;
+  border-radius:10px;
+  padding:14px 19px;
+  box-shadow:0 12px 35px rgba(0,0,0,.2);
+}
+.m{line-height:1.65}
+
+/* Login */
+#login-wrap{
+  min-height:100vh;
+  background:#F5F3EF;
+}
+.login-art{
+  position:relative;
+  padding:clamp(30px,5vw,76px);
+  background-position:center;
+}
+.login-art:before{
+  content:"GYA DECO";
+  position:absolute;
+  top:42px;left:clamp(30px,5vw,76px);
+  color:rgba(255,255,255,.88);
+  font:500 19px var(--font-serif);
+  letter-spacing:.24em;
+}
+.login-art blockquote{
+  font-size:clamp(28px,3vw,40px);
+  line-height:1.2;
+  max-width:520px;
+}
+.login-art span{font-size:9px;letter-spacing:.2em}
+#login{max-width:440px;padding:42px 30px}
+#login h1{font-size:40px;letter-spacing:.2em}
+#login .brand-sub{margin-bottom:36px}
+#login .box{
+  padding:28px;
+  border-radius:15px;
+  box-shadow:0 15px 45px rgba(39,33,25,.07);
+}
+#login .box label{margin-top:13px}
+#login .box label:first-child{margin-top:0}
+#login .box button{min-height:48px}
+
+/* Gráficos */
+.box svg{display:block;overflow:visible}
+.box svg text{font-size:11px}
+
+/* Adaptación tablet */
+@media(max-width:1100px){
+  aside{width:235px;padding-left:14px;padding-right:14px}
+  main{padding:30px 25px 55px}
+  .g{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:940px){
+  #app{display:flex;flex-direction:column}
+  aside{
+    width:100%;
+    padding:12px 17px;
+    background:#292722;
+    box-shadow:0 5px 18px rgba(25,22,18,.13);
+  }
+  .brand-wrap{padding:0;margin:0;text-align:left}
+  aside h1{font-size:20px;color:#FAF7F1}
+  aside .brand-sub{display:none}
+  #cur{color:#D0B487;font-size:11px}
+  #mnu{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);
+    color:#FFF;
+    border-radius:8px;
+    min-width:42px;min-height:38px;
+  }
+  #nv{
+    background:#292722;
+    border-top:1px solid rgba(255,255,255,.13);
+    margin-top:12px;
+    padding-top:10px;
+  }
+  #nv button{color:#D0CBC2;border-bottom-color:rgba(255,255,255,.07)}
+  #nv button.on{color:#FFF;background:rgba(190,158,108,.19)}
+  #out{color:#D0CBC2;border-top-color:rgba(255,255,255,.13)}
+  main{padding:26px 22px 48px}
+}
+@media(max-width:680px){
+  body{font-size:14px}
+  main{padding:22px 14px 38px}
+  .hero-sec{align-items:flex-start;margin-bottom:21px;padding-bottom:18px}
+  h2{font-size:30px}
+  .hero-sub{font-size:12px}
+  .hero-visual{grid-template-columns:1fr;min-height:0;margin-bottom:22px}
+  .hero-copy{padding:23px 21px}
+  .hero-copy h4{font-size:27px}
+  .hero-img{min-height:145px;height:145px}
+  .g{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .k{min-height:96px;padding:14px 13px;border-radius:10px}
+  .k span{font-size:10px;line-height:1.45}
+  .k b{font-size:18px;line-height:1.25}
+  .box{padding:15px;border-radius:11px;margin-bottom:13px}
+  .row{gap:12px}
+  .row>div{min-width:calc(50% - 8px)}
+  .row>div[style*="flex:none"]{min-width:100%}
+  input,select{font-size:16px;min-height:44px}
+  button.b{min-height:44px}
+  .tot{gap:12px;padding:14px}
+  .tot b{font-size:22px}
+  #main table:not(.ft) tr{border-radius:10px;padding:9px 12px;margin-bottom:10px}
+  #main table:not(.ft) td{font-size:12px;padding:9px 0}
+  #main table:not(.ft) td::before{font-size:10px;letter-spacing:.025em}
+  .ft tr{border-radius:10px;padding:12px}
+  #toast{left:12px;right:12px;bottom:14px}
+  #login-wrap{grid-template-columns:1fr}
+  #login{padding:28px 19px;max-width:460px}
+  #login h1{font-size:34px}
+  #login .box{padding:22px}
+}
+@media(max-width:380px){
+  .g{grid-template-columns:1fr 1fr}
+  .k b{font-size:16px}
+  .brand-wrap{padding-right:4px}
+  aside h1{font-size:17px}
+  #cur{font-size:10px}
+  main{padding-left:11px;padding-right:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+@media print{
+  aside{display:none!important}
+  main{padding:0!important}
+  .box,.k{break-inside:avoid}
+}
+
+</style></head><body>
+<div id="app"></div><div id="toast"></div>
+<script>
+// ====== CONFIGURACIÓN: pegá acá los datos de tu proyecto Supabase (Settings > API) ======
+const SUPABASE_URL = "https://hgwvurzdcvnjtryzehea.supabase.co";
+const SUPABASE_KEY = "sb_publishable_pt6zduM9WY4bBwmqA2qqWQ_PWIlh1eL";
+// =========================================================================================
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $m=v=>"$ "+Number(v||0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const nn=v=>Number(v||0).toLocaleString("es-AR",{maximumFractionDigits:2});
+const iso=d=>d.toLocaleDateString("sv-SE"),hoy=()=>iso(new Date());
+let sb,me,view="dash",st={per:"mes"},prods=[];
+const rpc=async(f,a)=>{const{data,error}=await sb.rpc(f,a);if(error)throw error;return data};
+const q=async p=>{const{data,error}=await p;if(error)throw error;return data};
+const toast=(t,bad)=>{const e=$("#toast");e.textContent=t;e.style.borderLeftColor=bad?"var(--bad)":"var(--gold)";e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",4500)};
+let M4=true;
+const BANNER='<div class="al"><b>Falta actualizar la base de datos.</b> Ejecutá <b>ACTUALIZAR_4_proveedores_stock.sql</b> en Supabase (SQL Editor). Hasta entonces no están disponibles: Compras y costos, movimientos de stock y medidas de producto. Lo demás funciona normal.</div>';
+const sq=async b=>{const{data,error}=await b;return error?[]:data};
+const stockVal=rows=>{const c=rows.filter(p=>+p.stock>0);return{productos_con_stock:c.length,unidades:c.reduce((a,p)=>a+ +p.stock,0),valor_costo:c.reduce((a,p)=>a+p.stock*p.costo,0),valor_venta:c.reduce((a,p)=>a+p.stock*p.precio_venta,0)}};
+const friendly=m=>/productos_sku_uq/.test(m)?"Ya existe un producto con ese SKU":/proveedores_nombre_uq/.test(m)?"Ya existe un proveedor con ese nombre":/categorias_producto_uq/.test(m)?"Esa categoría ya existe":m;
+const act=async(f,ok)=>{try{await f();toast(ok||"Listo");return true}catch(e){toast(friendly(e.message),1);return false}};
+const csv=(n,head,rows)=>{const c=[head,...rows].map(r=>r.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c],{type:"text/csv"}));a.download=n+".csv";a.click()};
+const F=(l,id,v="",t="number")=>`<div><label>${l}</label><input id="${id}" type="${t}" step="any" value="${v}"></div>`,mm=d=>d?d.slice(5,7)+"/"+d.slice(0,4):"",pc=v=>nn(v)+" %";
+
+const chart=(labs,ser,f=$m)=>{if(!labs.length)return'<div class="box m">Sin datos todavía</div>';const W=680,H=195,mx=Math.max(1,...ser.flatMap(s=>s.v.map(Math.abs))),bw=Math.min(W/labs.length,120),ox=(W-bw*labs.length)/2,w=bw*.78/ser.length;
+  return `<div class="box"><svg viewBox="0 0 ${W} ${H+28}" style="width:100%;max-width:820px"><line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="#E6E0D6" stroke-width="1"/>${labs.map((l,i)=>ser.map((s,j)=>{const h=Math.abs(s.v[i])/mx*H;return `<rect x="${ox+i*bw+bw*.11+j*w}" y="${H-h}" width="${Math.max(4,w-4)}" height="${h}" rx="3" fill="${s.v[i]<0?"#B54A42":s.c}"><title>${s.n} ${l}: ${f(s.v[i])}</title></rect>`}).join("")+`<text x="${ox+i*bw+bw/2}" y="${H+19}" fill="#756E65" font-size="11.5" font-family="Plus Jakarta Sans, sans-serif" text-anchor="middle">${l}</text>`).join("")}</svg><div class="m" style="margin-top:8px;font-size:12.5px">${ser.map(s=>`<span style="color:${s.c};font-size:14px">●</span> ${s.n}`).join(" &nbsp;&nbsp; ")}</div></div>`};
+
+const K=(l,v,c)=>`<div class="k ${c||""}"><span>${l}</span><b>${v}</b></div>`;
+const Hdr=(eyebrow,title,sub,extra="")=>`<div class="hero-sec"><div><span class="hero-eyebrow">${eyebrow}</span><h2>${title}</h2>${sub?`<p class="hero-sub">${sub}</p>`:""}</div>${extra?`<div>${extra}</div>`:""}</div>`;
+
+const rango=(p,a,b)=>{const n=new Date(),y=n.getFullYear(),m=n.getMonth(),D=iso;
+  return{hoy:[D(n),D(n)],7:[D(new Date(y,m,n.getDate()-6)),D(n)],30:[D(new Date(y,m,n.getDate()-29)),D(n)],mes:[D(new Date(y,m,1)),D(n)],
+  ant:[D(new Date(y,m-1,1)),D(new Date(y,m,0))],anio:[D(new Date(y,0,1)),D(n)],custom:[a,b]}[p]};
+
+async function boot(){
+  if(SUPABASE_URL.startsWith("PEGAR")){$("#app").innerHTML='<div id="login"><h1>GYA DECO</h1><p class="err">Falta configurar Supabase: editá gestion.html y pegá la URL y la anon key arriba del script.</p></div>';return}
+  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const{data:{session}}=await sb.auth.getSession();
+  session?start():login();
+}
+function login(){
+  $("#app").innerHTML=`<div id="login-wrap">
+    <div class="login-art">
+      <blockquote>“La arquitectura interior es el arte de dar calidez, textura y armonía a cada espacio.”</blockquote>
+      <span>GYA DECO · Revestimientos & Placas de PVC</span>
+    </div>
+    <div id="login">
+      <h1>GYA DECO</h1>
+      <span class="brand-sub">Studio & Gestión</span>
+      <div class="box">
+        <label>Correo electrónico</label><input id="em" type="email" placeholder="nombre@gyadeco.com">
+        <label style="margin-top:14px">Contraseña</label><input id="pw" type="password" placeholder="••••••••">
+        <p style="margin-top:20px;margin-bottom:0"><button class="b" id="go" style="width:100%;padding:12px">Ingresar al sistema</button></p>
+      </div>
+    </div>
+  </div>`;
+  const go=()=>act(async()=>{const{error}=await sb.auth.signInWithPassword({email:$("#em").value,password:$("#pw").value});if(error)throw error;start()},"Bienvenido a GYA DECO");
+  $("#go").onclick=go;$("#pw").onkeydown=e=>{if(e.key=="Enter")go()};
+}
+async function start(){
+  const{data:{user}}=await sb.auth.getUser();
+  M4=!(await sb.from("proveedores").select("id").limit(1)).error;
+  const{data}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
+  if(!data||!data.activo){$("#app").innerHTML='<div id="login" style="margin-top:15vh"><h1>GYA DECO</h1><p class="err" style="text-align:center">Tu usuario todavía no tiene un perfil asignado.</p><button class="b s" style="width:100%" onclick="salir()">Salir</button></div>';return}
+  me=data;view=me.rol=="admin"?"dash":"inv";shell();draw();
+}
+const salir=async()=>{await sb.auth.signOut();login()};
+const NAV=[["dash","Dashboard"],["pres","Presupuestos"],["venta","Registrar venta"],["hist","Inbox de ventas"],["cli","Clientes"],["prod","Productos"],["compras","Compras y costos"],["gasto","Gastos"],["inv","Inversores"],["caja","Caja y movimientos"],["rep","Reportes"]];
+const mobilize=()=>$$("#main table").forEach(t=>{const h=[...t.querySelectorAll("thead th")].map(x=>x.textContent.trim());if(!h.length)return;t.querySelectorAll("tbody tr").forEach(tr=>[...tr.children].forEach((td,i)=>{if(td.dataset.l===undefined&&h[i]!==undefined)td.dataset.l=h[i]}))});
+function shell(){
+  const nv=me.rol=="admin"?NAV:NAV.filter(x=>x[0]=="inv");
+  $("#app").innerHTML=`<aside><div id="ah"><div class="brand-wrap"><h1>GYA DECO</h1><span class="brand-sub">Placas & Interiorismo</span></div><span id="cur"></span><button id="mnu" aria-label="Menú">☰</button></div><nav id="nv">${nv.map(x=>`<button data-v="${x[0]}">${x[1]}</button>`).join("")}<button id="out">Cerrar sesión (${esc(me.nombre)})</button></nav></aside><main id="main"></main>`;
+  $("aside").onclick=e=>{if(e.target.closest("#mnu")){$("#nv").classList.toggle("open");return}const b=e.target.closest("button[data-v]");if(b){view=b.dataset.v;$("#nv").classList.remove("open");scrollTo(0,0);draw()}};$("#out").onclick=salir;
+  new MutationObserver(()=>requestAnimationFrame(mobilize)).observe($("#main"),{childList:true,subtree:true});
+}
+async function draw(){
+  $$("aside button[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v==view));
+  const nx=NAV.find(n=>n[0]==view);if($("#cur"))$("#cur").textContent=nx?nx[1]:"";
+  $("#main").innerHTML='<p class="m" style="padding:20px 0">Cargando información…</p>';
+  try{await V[view]();if(!M4&&me.rol=="admin")$("#main").insertAdjacentHTML("afterbegin",BANNER)}catch(e){$("#main").innerHTML=`<p class="err">${esc(e.message)}</p>`}
+}
+const V={};
+
+V.dash=async()=>{
+  const[d,h]=rango(st.per,st.d,st.h),t=hoy(),m0=t.slice(0,8)+"01",P=(a,b)=>rpc("resumen_periodo",{p_desde:a,p_hasta:b});
+  const[r,vh,vm,vt,caja,inv,du,cons,dif,vsk]=await Promise.all([P(d,h),P(t,t),P(m0,t),P("2000-01-01",t),rpc("caja_actual"),rpc("resumen_inversores"),rpc("resumen_dueno"),rpc("verificar_consistencia"),rpc("periodos_con_diferencias"),q(sb.from("productos").select("stock,costo,precio_venta"))]);
+  const n0=new Date(),ms=[...Array(6)].map((_,k)=>{const t=new Date(n0.getFullYear(),n0.getMonth()-5+k,1);return[t.toLocaleDateString("es-AR",{month:"short"}),iso(t),iso(new Date(t.getFullYear(),t.getMonth()+1,0))]});
+  const ev=(await Promise.all(ms.map(a=>P(a[1],a[2])))).map(a=>a[0]);
+  const vs=stockVal(vsk),x=r[0],i=inv.reduce((a,v)=>({capital_aportado:a.capital_aportado+ +v.capital_aportado,ganancias_generadas:a.ganancias_generadas+ +v.ganancias_generadas+ +v.ajustes,reinvertido_acumulado:a.reinvertido_acumulado+ +v.reinvertido,retirado:a.retirado+ +v.retirado,saldo_disponible:a.saldo_disponible+ +v.pendiente}),{capital_aportado:0,ganancias_generadas:0,reinvertido_acumulado:0,retirado:0,saldo_disponible:0}),o=du[0],bad=cons.filter(c=>!c.ok);
+  const opts=[["hoy","Hoy"],["7","Últimos 7 días"],["30","Últimos 30 días"],["mes","Mes actual"],["ant","Mes anterior"],["anio","Año actual"],["custom","Personalizado"]];
+  $("#main").innerHTML=`${Hdr("Resumen Ejecutivo","Dashboard","Métricas financieras, movimiento de stock y rendimiento comercial de GYA DECO.")}
+  <div class="hero-visual">
+    <div class="hero-copy">
+      <span class="hero-eyebrow">Colección & Gestión</span>
+      <h4>Diseño arquitectónico en revestimientos</h4>
+      <p>Controlá cotizaciones, stock valorizado, ventas y rentabilidad operativa desde un entorno claro y preciso.</p>
+    </div>
+    <div class="hero-img"></div>
+  </div>
+  ${bad.map(c=>`<div class="al">Inconsistencia: ${esc(c.chequeo)} (${esc(c.detalle)})</div>`).join("")}
+  ${dif.length?`<div class="al">Hay ${dif.length} período(s) del inversor sin liquidar o desactualizados. Revisá "Inversores".</div>`:""}
+  <div class="box"><div class="row"><div><label>Período de análisis</label><select id="per">${opts.map(o=>`<option value="${o[0]}" ${o[0]==st.per?"selected":""}>${o[1]}</option>`).join("")}</select></div>
+  ${st.per=="custom"?`<div><label>Desde</label><input id="pd" type="date" value="${st.d||""}"></div><div><label>Hasta</label><input id="ph" type="date" value="${st.h||""}"></div><div style="flex:none"><button class="b" id="ap">Aplicar</button></div>`:""}</div></div>
+  <h3>Ventas</h3><div class="g">${K("Ventas de hoy",$m(vh[0].facturacion))}${K("Ventas del mes",$m(vm[0].facturacion))}${K("Ventas históricas",$m(vt[0].facturacion))}
+  ${K("Operaciones",x.operaciones)}${K("Unidades vendidas",nn(x.unidades))}${K("Ticket promedio",$m(x.ticket_promedio))}${K("Pendiente de cobro",$m(x.pendiente_de_cobro))}</div>
+  <h3>Resultados del período</h3><div class="g">${K("Facturación",$m(x.facturacion))}${K("Costo de mercadería vendida",$m(x.costo_mercaderia))}${K("Gastos operativos",$m(x.gastos_operativos))}
+  ${K("Ganancia bruta",$m(x.ganancia_bruta))}${K("Ganancia neta",$m(x.ganancia_neta),x.ganancia_neta<0?"neg":"pos")}${K("Rentabilidad",nn(x.rentabilidad_pct)+" %")}</div>
+  <h3>Evolución de los últimos 6 meses</h3>${chart(ms.map(a=>a[0]),[{n:"Ventas",c:"#9C7D4C",v:ev.map(e=>+e.facturacion)},{n:"Costos + gastos",c:"#B8AFA2",v:ev.map(e=>+e.costo_mercaderia+ +e.gastos_operativos)},{n:"Ganancia neta",c:"#3D7A56",v:ev.map(e=>+e.ganancia_neta)}])}
+  <h3>Caja</h3><div class="g">${K("Dinero disponible en caja",$m(caja),caja<0?"neg":"pos")}</div>
+  <h3>Inventario (stock valorizado)</h3><div class="g">${K("Valor del stock a costo",$m(vs.valor_costo))}${K("Valor del stock a precio de venta",$m(vs.valor_venta))}${K("Ganancia potencial del stock",$m(vs.valor_venta-vs.valor_costo),"pos")}${K("Unidades en stock",nn(vs.unidades)+" · "+(vs.productos_con_stock||0)+" productos")}</div>
+  <h3>Inversor</h3><div class="g">${K("Capital aportado",$m(i.capital_aportado))}${K("Ganancias generadas",$m(i.ganancias_generadas))}${K("Capital reinvertido",$m(i.reinvertido_acumulado))}${K("Retiros",$m(i.retirado))}${K("Saldo disponible",$m(i.saldo_disponible),i.saldo_disponible<0?"neg":"pos")}</div>
+  <h3>Dueño</h3><div class="g">${K("Ganancia acumulada",$m(o.ganancias_acumuladas))}${K("Retiros",$m(o.retiros))}${K("Saldo",$m(o.saldo))}</div>
+  <p class="m" style="margin-top:16px">Las ventas pendientes no cuentan como facturación ni caja hasta marcarlas cobradas. Ganancia contable ≠ dinero en caja.</p>`;
+  $("#per").onchange=e=>{st.per=e.target.value;draw()};if($("#ap"))$("#ap").onclick=()=>{st.d=$("#pd").value;st.h=$("#ph").value;draw()};
+};
+
+const filaItem=()=>`<tr><td><input class="sku" list="skus" placeholder="SKU"></td><td><input class="desc" placeholder="Descripción del artículo"></td><td><input class="cant" type="number" step="any" value="1"></td><td><input class="pre" type="number" step="any" placeholder="0.00"></td><td><input class="cos" type="number" step="any" placeholder="0.00"></td><td class="r sub" style="font-weight:600">-</td><td><button class="b s x" title="Quitar">✕</button></td></tr>`;
+V.venta=async()=>{
+  let cls;[prods,cls]=await Promise.all([q(sb.from("productos").select("*").eq("activo",true).order("sku")),q(sb.from("clientes").select("id,nombre").eq("activo",true).order("nombre"))]);
+  $("#main").innerHTML=`${Hdr("Punto de Venta","Registrar venta","Cargá una operación nueva y actualizá automáticamente stock y caja.")}
+  <datalist id="cls">${cls.map(c=>`<option value="${esc(c.nombre)}">`).join("")}</datalist><datalist id="skus">${prods.map(p=>`<option value="${esc(p.sku)}">${esc(p.descripcion)}</option>`).join("")}</datalist>
+  <div class="box"><h3 style="margin-top:0">Datos de la operación</h3><div class="row"><div><label>Fecha</label><input id="vf" type="date" value="${hoy()}"></div><div><label>Cliente (si no existe, se crea)</label><input id="vc" list="cls" placeholder="Buscar o escribir nombre"></div><div><label>Medio de pago</label><input id="vm" placeholder="Efectivo, transferencia…"></div>
+  <div><label>Estado</label><select id="ve"><option value="cobrada">Cobrada</option><option value="pendiente">Pendiente de cobro</option></select></div><div><label>Observaciones</label><input id="vo" placeholder="Notas opcionales"></div></div></div>
+  <div class="box t"><h3 style="margin-top:0">Detalle de artículos</h3><table class="ft"><thead><tr><th>SKU</th><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th>Costo unit.</th><th class="r">Total</th><th></th></tr></thead><tbody id="its">${filaItem()}</tbody></table>
+  <p style="margin-top:14px"><button class="b s" id="add">+ Agregar producto</button></p>
+  <p class="m">Elegí un SKU del catálogo para completar descripción, precio y costo (podés cambiar el precio). Si el SKU no existe, escribí descripción y costo.</p></div>
+  <div class="g" id="tt"></div><p style="margin-top:18px"><button class="b" id="ok">Confirmar venta</button></p>`;
+  const calc=()=>{let T=0,C=0,U=0;$$("#its tr").forEach(tr=>{const g=c=>+tr.querySelector(c).value||0,s=g(".cant")*g(".pre");T+=s;C+=g(".cant")*g(".cos");U+=g(".cant");tr.querySelector(".sub").textContent=$m(s)});
+    $("#tt").innerHTML=K("Unidades",nn(U))+K("Total vendido",$m(T))+K("Costo de mercadería",$m(C))+K("Ganancia bruta",$m(T-C),"pos")+K("Margen",T?nn((T-C)/T*100)+" %":"-")};
+  $("#its").oninput=e=>{const tr=e.target.closest("tr");if(e.target.classList.contains("sku")){const p=prods.find(p=>p.sku.toUpperCase()==e.target.value.trim().toUpperCase());
+    if(p){tr.querySelector(".desc").value=p.descripcion;tr.querySelector(".pre").value=p.precio_venta;tr.querySelector(".cos").value=p.costo}}calc()};
+  $("#its").onclick=e=>{if(e.target.classList.contains("x")&&$$("#its tr").length>1){e.target.closest("tr").remove();calc()}};
+  $("#add").onclick=()=>$("#its").insertAdjacentHTML("beforeend",filaItem());calc();
+  $("#ok").onclick=async()=>{const items=$$("#its tr").map(tr=>{const g=c=>tr.querySelector(c).value.trim(),o={sku:g(".sku"),cantidad:+g(".cant")};
+    if(g(".desc"))o.descripcion=g(".desc");if(g(".pre")!=="")o.precio_unitario=+g(".pre");if(g(".cos")!=="")o.costo_unitario=+g(".cos");return o});
+    if(!confirm("¿Confirmar la venta?"))return;
+    if(await act(async()=>{const nm=$("#vc").value.trim();let cid=null;
+      if(nm){const ex=cls.find(c=>c.nombre.toLowerCase()==nm.toLowerCase());cid=ex?ex.id:(await q(sb.from("clientes").insert({nombre:nm}).select("id").single())).id}
+      await rpc("crear_venta",{p_fecha:$("#vf").value,p_items:items,p_medio:$("#vm").value||null,p_estado:$("#ve").value,p_obs:$("#vo").value||null,p_cliente:cid})},"Venta registrada"))V.venta()};
+};
+
+V.hist=async()=>{
+  const[rows,us]=await Promise.all([q(sb.from("ventas").select("*,venta_items(sku,descripcion,cantidad,precio_unitario,total),clientes(nombre,telefono,direccion,documento)").order("numero",{ascending:false}).limit(1000)),q(sb.from("profiles").select("id,nombre"))]);
+  const U=Object.fromEntries(us.map(u=>[u.id,u.nombre])),f0=st.fcli||"";st.fcli="";let sel=null;
+  const cn=v=>v.cliente_nombre||v.clientes?.nombre||"";
+  $("#main").innerHTML=`${Hdr("Historial Comercial","Inbox de ventas","Consultá comprobantes emitidos, cobros pendientes y detalles de cada operación.")}
+  <div class="box"><div class="row"><div><label>Texto global</label><input id="bq" placeholder="SKU, cliente, medio, obs…"></div><div style="max-width:130px"><label>Documento (N°)</label><input id="bn" placeholder="Ej. 104"></div><div><label>Cliente</label><input id="bc" value="${esc(f0)}"></div>
+  <div style="max-width:140px"><label>Estado</label><select id="be"><option value="">Todos</option><option>cobrada</option><option>pendiente</option><option>anulada</option></select></div><div style="max-width:150px"><label>Desde</label><input id="bd" type="date"></div><div style="max-width:150px"><label>Hasta</label><input id="bh" type="date"></div></div></div>
+  <div class="box t" id="bt"></div><div id="det"></div>`;
+  const det=v=>`<div class="box"><h3 style="margin-top:0">Venta #${v.numero} · ${v.fecha}</h3><div class="row"><div><label>Cliente</label>${esc(cn(v))||"-"}</div><div><label>Teléfono</label>${esc(v.clientes?.telefono)||"-"}</div><div><label>Dirección</label>${esc(v.clientes?.direccion)||"-"}</div><div><label>Documento</label>${esc(v.clientes?.documento)||"-"}</div><div><label>Medio de pago</label>${esc(v.medio_pago)||"-"}</div></div>
+    <div class="t" style="margin-top:14px"><table><thead><tr><th>SKU</th><th>Descripción</th><th class="r">Cant.</th><th class="r">Precio unit.</th><th class="r">Total</th></tr></thead><tbody>${v.venta_items.map(i=>`<tr><td>${esc(i.sku)}</td><td>${esc(i.descripcion)}</td><td class="r">${nn(i.cantidad)}</td><td class="r">${$m(i.precio_unitario)}</td><td class="r" style="font-weight:600">${$m(i.total)}</td></tr>`).join("")}</tbody></table></div>
+    <p>${v.observaciones?`<span class="m">Obs.: ${esc(v.observaciones)}</span> `:""}${v.anulada_motivo?`<span class="err">Anulada: ${esc(v.anulada_motivo)}</span>`:""}</p>
+    <p>${v.estado=="pendiente"?`<button class="b" data-c="${v.id}">Marcar cobrada</button> `:""}${v.estado!="anulada"?`<button class="b s" data-a="${v.id}">Anular venta</button>`:""}</p></div>`;
+  const pint=()=>{const s=$("#bq").value.toLowerCase(),n=$("#bn").value.trim().replace("#",""),c=$("#bc").value.toLowerCase(),e=$("#be").value,d=$("#bd").value,h=$("#bh").value;
+    const f=rows.filter(v=>(!n||String(v.numero)==n)&&(!c||cn(v).toLowerCase().includes(c))&&(!e||v.estado==e)&&(!d||v.fecha>=d)&&(!h||v.fecha<=h)&&(!s||(v.numero+" "+cn(v)+" "+(v.medio_pago||"")+" "+(v.observaciones||"")+" "+(U[v.created_by]||"")+" "+v.venta_items.map(i=>i.sku+" "+i.descripcion).join(" ")).toLowerCase().includes(s)));
+    const ok=f.filter(v=>v.estado=="cobrada"),T=ok.reduce((a,v)=>a+ +v.total,0),G=ok.reduce((a,v)=>a+ +v.ganancia_bruta,0);
+    $("#bt").innerHTML=`<table><thead><tr><th>Fecha</th><th>Documento</th><th>Cliente</th><th class="r">Total</th><th class="r">Ganancia</th><th>Medio</th><th>Estado</th><th>Usuario</th><th>Obs.</th><th>Fecha creación</th></tr></thead><tbody>${f.map((v,i)=>`<tr data-i="${i}" class="${v.id==sel?"sel":""}"><td>${v.fecha.split("-").reverse().join("/")}</td><td><b>Venta #${v.numero}</b></td><td>${esc(cn(v))}</td><td class="r" style="font-weight:600">${$m(v.total)}</td><td class="r">${$m(v.ganancia_bruta)}</td><td>${esc(v.medio_pago)}</td><td><span class="tag ${v.estado}">${v.estado}</span></td><td>${esc(U[v.created_by])}</td><td>${esc((v.observaciones||"").slice(0,30))}</td><td class="m">${new Date(v.created_at).toLocaleString("es-AR")}</td></tr>`).join("")||'<tr><td colspan="10" class="m">Sin resultados</td></tr>'}</tbody></table>
+    <p class="m" style="margin-top:12px">${f.length} ventas · cobradas: ${ok.length} por <b>${$m(T)}</b> · ganancia bruta <b>${$m(G)}</b> · las anuladas y pendientes no suman.</p>`;
+    $$("tr[data-i]").forEach(tr=>tr.onclick=()=>{sel=f[tr.dataset.i].id;pint()});
+    const v=f.find(x=>x.id==sel);$("#det").innerHTML=v?det(v):"";
+    $$("[data-c]").forEach(b=>b.onclick=async()=>{if(await act(()=>rpc("marcar_cobrada",{p_venta:b.dataset.c}),"Venta cobrada"))draw()});
+    $$("[data-a]").forEach(b=>b.onclick=async()=>{const m=prompt("Motivo de la anulación:");if(m&&confirm("¿Anular la venta? Se revertirán caja y stock."))if(await act(()=>rpc("anular_venta",{p_venta:b.dataset.a,p_motivo:m}),"Venta anulada"))draw()})};
+  ["#bq","#bn","#bc","#be","#bd","#bh"].forEach(x=>$(x).oninput=pint);pint();
+};
+
+const catSel=(cats,id,val)=>`<select id="${id}"><option value="">— Elegí o creá una —</option>${cats.filter(c=>c.activa||c.nombre==val).map(c=>`<option value="${esc(c.nombre)}" ${c.nombre==val?"selected":""}>${esc(c.nombre)}</option>`).join("")}<option value="__new">➕ Crear nueva categoría…</option></select>`;
+const catBind=(id,cats)=>{$("#"+id).onchange=async e=>{if(e.target.value!="__new")return;const n=(prompt("Nombre de la nueva categoría:")||"").trim();if(!n){e.target.value="";return}
+  const ex=cats.find(c=>c.nombre.toLowerCase()==n.toLowerCase());
+  if(!ex&&!await act(()=>q(sb.from("categorias_producto").insert({nombre:n})),"Categoría creada")){e.target.value="";return}
+  const nm=ex?ex.nombre:n;if(!ex){const o=document.createElement("option");o.value=o.textContent=nm;e.target.insertBefore(o,e.target.querySelector('[value="__new"]'));cats.push({nombre:nm,activa:true})}e.target.value=nm}};
+const r3=v=>Math.round(v*1000)/1000,num0=v=>v===""||v==null?null:+v;
+
+V.prod=async()=>{
+  const[rows,cats]=await Promise.all([q(sb.from("productos").select("*").order("sku")),q(sb.from("categorias_producto").select("*").order("nombre"))]);const vsk=[stockVal(rows)];
+  const cur=rows.find(p=>p.id==st.pid);if(cur)return prodFicha(cur,cats);st.pid=null;const v=vsk[0]||{};
+  $("#main").innerHTML=`${Hdr("Catálogo & Inventario","Productos","Administrá el catálogo de placas, revestimientos, medidas, márgenes y existencias.")}
+  <div class="g">${K("Valor del stock a costo",$m(v.valor_costo))}${K("Valor del stock a precio de venta",$m(v.valor_venta))}${K("Ganancia potencial del stock",$m(v.valor_venta-v.valor_costo),"pos")}${K("Unidades en stock",nn(v.unidades))}${K("Productos con stock",v.productos_con_stock||0)}</div>
+  <h3>Nuevo producto</h3><div class="box"><div class="row"><div><label>SKU *</label><input id="ps" placeholder="Ej. PVC-MAR-50"></div><div><label>Descripción *</label><input id="pdn" placeholder="Placa PVC Mármol Carrara"></div><div><label>Categoría</label>${catSel(cats,"pc","")}</div>${F("Precio de venta","pp","")}${F("Costo","pk","")}${F("Stock inicial","pt","")}${F("Ancho (cm)","pa","")}${F("Alto (cm)","ph2","")}<div style="flex:none"><button class="b" id="pg">Guardar</button></div></div><p class="m" style="margin-top:10px">Las compras a proveedores también pueden crear productos nuevos y sumarles stock desde "Compras y costos".</p></div>
+  <div class="box"><label>Buscar en el catálogo</label><input id="pq" placeholder="Filtrar por SKU, descripción o categoría…"></div><div class="box t" id="ptb"></div>`;
+  catBind("pc",cats);
+  const pint=()=>{const k=$("#pq").value.toLowerCase(),f=rows.filter(p=>!k||(p.sku+" "+p.descripcion+" "+(p.categoria||"")).toLowerCase().includes(k));
+    $("#ptb").innerHTML=`<table><thead><tr><th>SKU</th><th>Descripción</th><th>Categoría</th><th class="r">Precio</th><th class="r">Costo</th><th class="r">Margen s/costo</th><th class="r">Margen s/precio</th><th class="r">Stock</th><th class="r">Valor stock (costo)</th><th>Estado</th><th></th></tr></thead><tbody>${f.map(p=>{const m=+p.costo>0&&+p.precio_venta>0?[(p.precio_venta-p.costo)/p.costo*100,(p.precio_venta-p.costo)/p.precio_venta*100]:[null,null];return`<tr data-p="${p.id}" style="cursor:pointer"><td><b>${esc(p.sku)}</b></td><td style="white-space:normal;min-width:190px">${esc(p.descripcion)}</td><td>${esc(p.categoria)}</td><td class="r" style="font-weight:600">${$m(p.precio_venta)}</td><td class="r">${$m(p.costo)}</td><td class="r">${m[0]==null?"-":nn(m[0])+" %"}</td><td class="r">${m[1]==null?"-":nn(m[1])+" %"}</td><td class="r">${p.stock==null?"-":nn(p.stock)}</td><td class="r">${p.stock>0?$m(p.stock*p.costo):"-"}</td><td><span class="tag ${p.activo?"cobrada":"anulada"}">${p.activo?"Activo":"Inactivo"}</span></td><td><button class="b s" data-pe="${p.id}">Editar</button> <button class="b s" data-pt="${p.id}|${p.activo}">${p.activo?"Desactivar":"Activar"}</button></td></tr>`}).join("")||'<tr><td colspan="11" class="m">Sin productos</td></tr>'}</tbody></table><p class="m" style="margin-top:12px">${f.length} productos · tocá una fila para ver y editar todo el producto y sus movimientos.</p>`;
+    $$("tr[data-p]").forEach(tr=>tr.onclick=e=>{if(e.target.closest("button"))return;st.pid=tr.dataset.p;draw()});
+    $$("[data-pe]").forEach(b=>b.onclick=()=>{st.pid=b.dataset.pe;draw()});
+    $$("[data-pt]").forEach(b=>b.onclick=async()=>{const[id,a]=b.dataset.pt.split("|");if(await act(()=>q(sb.from("productos").update({activo:a!="true"}).eq("id",id))))draw()})};
+  $("#pq").oninput=pint;pint();
+  $("#pg").onclick=async()=>{if(!$("#ps").value.trim()||!$("#pdn").value.trim())return toast("SKU y descripción son obligatorios",1);
+    if(await act(()=>q(sb.from("productos").insert({sku:$("#ps").value.trim(),descripcion:$("#pdn").value.trim(),categoria:$("#pc").value&&$("#pc").value!="__new"?$("#pc").value:null,precio_venta:+$("#pp").value||0,costo:+$("#pk").value||0,stock:num0($("#pt").value),ancho_cm:num0($("#pa").value),...(M4?{ancho_cm:num0($("#pa").value),alto_cm:num0($("#ph2").value)}:{})})),"Producto guardado"))draw()};
+};
+async function prodFicha(p,cats){
+  const[mv,ci,vi,au]=await Promise.all([sq(sb.from("movimientos_stock").select("*").eq("producto_id",p.id).order("seq",{ascending:false}).limit(300)),sq(sb.from("compra_items").select("*,compras(numero,fecha,proveedor,estado)").eq("producto_id",p.id)),sq(sb.from("venta_items").select("*,ventas(numero,fecha,estado,cliente_nombre)").eq("producto_id",p.id)),sq(sb.from("auditoria").select("*").eq("tabla","productos").eq("registro_id",p.id).order("at",{ascending:false}).limit(150))]);
+  const TM={inicial:"Stock inicial",compra:"Compra",venta:"Venta",reintegro_venta:"Reintegro por venta",anulacion_compra:"Anulación de compra",ajuste:"Ajuste manual"},KS=[["sku","SKU"],["descripcion","Descripción"],["categoria","Categoría"],["precio_venta","Precio de venta"],["costo","Costo"],["activo","Activo"],["ancho_cm","Ancho"],["alto_cm","Alto"],["notas","Notas"]],fv=(k,v)=>v==null||v===""?"(vacío)":["precio_venta","costo"].includes(k)?$m(v):String(v);
+  const cambios=au.flatMap(a=>{const d=new Date(a.at).toLocaleString("es-AR");if(a.accion=="INSERT")return[[d,"Alta del producto"]];if(a.accion!="UPDATE")return[];const t=KS.filter(([k])=>String(a.antes?.[k]??"")!=String(a.despues?.[k]??"")).map(([k,n])=>`${n}: ${fv(k,a.antes?.[k])} → ${fv(k,a.despues?.[k])}`);return t.length?[[d,t.join(" · ")]]:[]});
+  $("#main").innerHTML=`<p><button class="b s" id="pb">← Volver al catálogo</button></p>${Hdr("Ficha Técnica del Artículo",esc(p.sku)+" — "+esc(p.descripcion),p.activo?"Artículo activo en catálogo":"Artículo desactivado")}
+  <div class="g">${K("Stock actual",p.stock==null?"sin control":nn(p.stock))}${K("Valor del stock a costo",$m(p.stock>0?p.stock*p.costo:0))}${K("Valor del stock a precio de venta",$m(p.stock>0?p.stock*p.precio_venta:0))}${K("Costo",$m(p.costo))}${K("Precio de venta",$m(p.precio_venta))}<div class="k"><span>Margen s/costo · s/precio</span><b id="mg">-</b></div></div>
+  <h3>Datos del producto</h3><div class="box"><div class="row"><div><label>SKU</label><input id="es" value="${esc(p.sku)}"></div><div style="flex:2"><label>Descripción</label><input id="ed" value="${esc(p.descripcion)}"></div><div><label>Categoría</label>${catSel(cats,"ec",p.categoria)}</div></div>
+  <div class="row" style="margin-top:12px">${F("Precio de venta ($)","ep",p.precio_venta)}${F("Costo ($)","ek",p.costo)}${F("Ancho (cm)","ea",p.ancho_cm??"")}${F("Alto (cm)","eh",p.alto_cm??"")}<div style="flex:2"><label>Notas</label><input id="en2" value="${esc(p.notas)}"></div></div>
+  <p style="margin-top:16px"><button class="b" id="eg">Guardar cambios</button> <button class="b s" id="et">${p.activo?"Desactivar producto":"Activar producto"}</button></p><p class="m">Si cambiás el SKU, las ventas y compras anteriores conservan el SKU que tenían en ese momento. Los cambios quedan registrados abajo.</p></div>
+  <h3>Ajustar stock</h3><div class="box row">${F("Stock real contado","ek2",p.stock??0)}<div style="flex:2"><label>Motivo del ajuste *</label><input id="em" placeholder="Ej: conteo físico, rotura, regalo"></div><div style="flex:none"><button class="b" id="ea2">Ajustar stock</button></div></div>
+  <h3>Movimientos de stock</h3><div class="box t"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Motivo</th><th class="r">Cantidad</th><th class="r">Stock anterior</th><th class="r">Stock posterior</th></tr></thead><tbody>${mv.map(m=>`<tr><td>${new Date(m.fecha).toLocaleString("es-AR")}</td><td>${TM[m.tipo]||m.tipo}</td><td style="white-space:normal">${esc(m.motivo)}</td><td class="r" style="color:var(--${m.cantidad<0?"bad":"ok"});font-weight:600">${m.cantidad>0?"+":""}${nn(m.cantidad)}</td><td class="r">${m.stock_anterior==null?"-":nn(m.stock_anterior)}</td><td class="r">${m.stock_posterior==null?"-":nn(m.stock_posterior)}</td></tr>`).join("")||'<tr><td colspan="6" class="m">Sin movimientos todavía</td></tr>'}</tbody></table></div>
+  <h3>Compras de este producto</h3><div class="box t"><table><thead><tr><th>Fecha</th><th>Compra</th><th>Proveedor</th><th class="r">Cantidad</th><th class="r">Costo unit. final</th><th>Estado</th></tr></thead><tbody>${ci.sort((a,b)=>(b.compras?.fecha||"").localeCompare(a.compras?.fecha||"")).map(i=>`<tr><td>${i.compras?.fecha||""}</td><td>#${i.compras?.numero||""}</td><td>${esc(i.compras?.proveedor)}</td><td class="r">${nn(i.cantidad)}</td><td class="r">${$m(i.costo_unitario)}</td><td>${i.compras?.estado||""}</td></tr>`).join("")||'<tr><td colspan="6" class="m">Sin compras registradas</td></tr>'}</tbody></table></div>
+  <h3>Ventas de este producto</h3><div class="box t"><table><thead><tr><th>Fecha</th><th>Venta</th><th>Cliente</th><th class="r">Cantidad</th><th class="r">Precio unit.</th><th class="r">Total</th><th>Estado</th></tr></thead><tbody>${vi.sort((a,b)=>(b.ventas?.fecha||"").localeCompare(a.ventas?.fecha||"")).map(i=>`<tr><td>${i.ventas?.fecha||""}</td><td>#${i.ventas?.numero||""}</td><td>${esc(i.ventas?.cliente_nombre)}</td><td class="r">${nn(i.cantidad)}</td><td class="r">${$m(i.precio_unitario)}</td><td class="r">${$m(i.total)}</td><td>${i.ventas?.estado||""}</td></tr>`).join("")||'<tr><td colspan="7" class="m">Sin ventas registradas</td></tr>'}</tbody></table></div>
+  <h3>Historial de cambios del producto</h3><div class="box t"><table><thead><tr><th>Fecha</th><th>Cambio</th></tr></thead><tbody>${cambios.map(c=>`<tr><td>${c[0]}</td><td style="white-space:normal">${esc(c[1])}</td></tr>`).join("")||'<tr><td colspan="2" class="m">Sin cambios registrados</td></tr>'}</tbody></table></div>`;
+  catBind("ec",cats);const mgn=()=>{const c=+$("#ek").value||0,pr=+$("#ep").value||0;$("#mg").textContent=c>0&&pr>0?nn((pr-c)/c*100)+" % · "+nn((pr-c)/pr*100)+" %":"-"};$("#ep").oninput=$("#ek").oninput=mgn;mgn();
+  $("#pb").onclick=()=>{st.pid=null;draw()};
+  $("#eg").onclick=async()=>{if(!$("#es").value.trim()||!$("#ed").value.trim())return toast("SKU y descripción son obligatorios",1);
+    if(await act(()=>q(sb.from("productos").update({sku:$("#es").value.trim(),descripcion:$("#ed").value.trim(),categoria:$("#ec").value&&$("#ec").value!="__new"?$("#ec").value:null,precio_venta:+$("#ep").value||0,costo:+$("#ek").value||0,...(M4?{ancho_cm:num0($("#ea").value),alto_cm:num0($("#eh").value),notas:$("#en2").value.trim()||null}:{})}).eq("id",p.id)),"Producto actualizado"))draw()};
+  $("#et").onclick=async()=>{if(await act(()=>q(sb.from("productos").update({activo:!p.activo}).eq("id",p.id))))draw()};
+  $("#ea2").onclick=async()=>{if(await act(()=>M4?rpc("ajustar_stock",{p_producto:p.id,p_nuevo:+$("#ek2").value,p_motivo:$("#em").value}):q(sb.from("productos").update({stock:+$("#ek2").value}).eq("id",p.id)),"Stock ajustado"))draw()};
+}
+
+V.gasto=async()=>{
+  const[cats,rows]=await Promise.all([q(sb.from("categorias_gasto").select("*").order("nombre")),q(sb.from("gastos").select("*,categorias_gasto(nombre)").order("fecha",{ascending:false}).limit(300))]);
+  $("#main").innerHTML=`${Hdr("Egresos Operativos","Gastos","Registrá gastos generales, servicios y compras vinculadas a la operación.")}
+  <div class="box row"><div><label>Fecha</label><input id="gf" type="date" value="${hoy()}"></div><div><label>Categoría</label><select id="gc">${cats.filter(c=>c.activa).map(c=>`<option value="${c.id}">${esc(c.nombre)}</option>`).join("")}</select></div>
+  <div><label>Descripción</label><input id="gd" placeholder="Concepto del gasto"></div><div><label>Importe</label><input id="gi" type="number" step="any" placeholder="0.00"></div><div><label>Medio de pago</label><input id="gm"></div><div><label>Comprobante (URL, opcional)</label><input id="gu"></div>
+  <div style="flex:none"><button class="b" id="gg">Registrar</button> <button class="b s" id="gn">Nueva categoría</button></div></div>
+  <p class="m">"Compras de mercadería" mueve la caja pero no resta de la ganancia (el costo ya entra por cada venta).</p>
+  <div class="box t"><table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th class="r">Importe</th><th>Medio</th><th>Estado</th><th></th></tr></thead><tbody>${rows.map(g=>`<tr><td>${g.fecha}</td><td>${esc(g.categorias_gasto?.nombre)}</td><td>${esc(g.descripcion)}</td><td class="r" style="font-weight:600">${$m(g.importe)}</td><td>${esc(g.medio_pago)}</td><td>${g.anulado?'<span class="tag anulada">anulado</span>':""}</td><td>${g.anulado?"":`<button class="b s" data-a="${g.id}">Anular</button>`}</td></tr>`).join("")}</tbody></table></div>`;
+  $("#gg").onclick=async()=>{if(await act(()=>rpc("crear_gasto",{p_fecha:$("#gf").value,p_categoria:$("#gc").value,p_descripcion:$("#gd").value,p_importe:+$("#gi").value,p_medio:$("#gm").value||null,p_comprobante:$("#gu").value||null}),"Gasto registrado"))draw()};
+  $("#gn").onclick=async()=>{const n=prompt("Nombre de la nueva categoría:");if(n&&await act(()=>q(sb.from("categorias_gasto").insert({nombre:n.trim()})),"Categoría creada"))draw()};
+  $$("[data-a]").forEach(b=>b.onclick=async()=>{const m=prompt("Motivo de la anulación:");if(m&&await act(()=>rpc("anular_gasto",{p_gasto:b.dataset.a,p_motivo:m}),"Gasto anulado"))draw()});
+};
+
+function decForm(host,x,p){
+  host.innerHTML=`<div class="box"><h3 style="margin-top:0">Decidir ganancia ${mm(p.periodo)} · ${esc(x.nombre)} · pendiente ${$m(p.pendiente)}</h3><div class="row">${F("Retira ($)","dr",0)}${F("Reinvierte ($)","di",p.pendiente)}${F("Fecha","df",hoy(),"date")}<div><label>Medio de pago del retiro</label><input id="dm"></div><div><label>Observaciones</label><input id="do"></div></div>
+  <p style="margin-top:14px"><button class="b s" id="d1">Retirar todo</button> <button class="b s" id="d2">Reinvertir todo</button> <button class="b" id="d3">Registrar decisión</button> <span class="m" id="dc" style="margin-left:8px"></span></p></div>`;
+  const chk=()=>{const t=(+$("#dr").value||0)+(+$("#di").value||0);$("#dc").textContent=Math.abs(t-p.pendiente)<.005?"✓ coincide con la ganancia liquidada":"Suma "+$m(t)+" · debe ser exactamente "+$m(p.pendiente)};
+  $("#dr").oninput=$("#di").oninput=chk;chk();
+  $("#d1").onclick=()=>{$("#dr").value=p.pendiente;$("#di").value=0;chk()};$("#d2").onclick=()=>{$("#dr").value=0;$("#di").value=p.pendiente;chk()};
+  $("#d3").onclick=async()=>{if(await act(()=>rpc("registrar_decision_ganancia",{p_acuerdo:x.acuerdo_id,p_periodo:p.periodo,p_retira:+$("#dr").value||0,p_reinvierte:+$("#di").value||0,p_fecha:$("#df").value,p_medio:$("#dm").value||null,p_obs:$("#do").value||null}),"Decisión registrada"))draw()};
+  host.scrollIntoView({behavior:"smooth"});
+}
+const histTabla=(rows,id)=>`<div class="box t"><table><thead><tr><th>Fecha</th>${id?"":"<th>Inversor</th>"}<th>Tipo</th><th>Concepto</th><th>Período</th><th class="r">Importe</th><th class="r">Saldo anterior</th><th class="r">Saldo posterior</th><th>Usuario</th></tr></thead><tbody>${rows.map(h=>`<tr><td>${h.fecha}</td>${id?"":`<td>${esc(h.inversor)}</td>`}<td>${h.tipo}</td><td>${esc(h.concepto)}</td><td>${h.periodo?mm(h.periodo):""}</td><td class="r">${h.importe==null?"":$m(h.importe)}</td><td class="r">${h.saldo_anterior==null?"":$m(h.saldo_anterior)}</td><td class="r">${h.saldo_posterior==null?"":$m(h.saldo_posterior)}</td><td>${esc(h.usuario)}</td></tr>`).join("")||'<tr><td colspan="9" class="m">Sin movimientos</td></tr>'}</tbody></table></div>`;
+const histCsv=(n,rows)=>csv(n,["Fecha","Inversor","Tipo","Concepto","Período","Importe","Saldo anterior","Saldo posterior","Usuario"],rows.map(h=>[h.fecha,h.inversor,h.tipo,h.concepto,h.periodo||"",h.importe??"",h.saldo_anterior??"",h.saldo_posterior??"",h.usuario||""]));
+
+V.inv=async()=>{
+  const adm=me.rol=="admin",rs=await rpc("resumen_inversores");
+  if(!adm)st.iid=rs[0]?.acuerdo_id;
+  if(st.iid&&rs.find(x=>x.acuerdo_id==st.iid))return ficha(rs,adm);
+  st.iid=null;
+  if(!adm){$("#main").innerHTML=`${Hdr("Capital & Participación","Mis inversiones","Todavía no tenés una cuenta de inversor vinculada. Pedile al administrador que la vincule a tu email.")}`;return}
+  const[pend,dif,his]=await Promise.all([rpc("pendientes_decision"),rpc("periodos_con_diferencias"),rpc("historial_inversor")]);
+  const ac=rs.filter(x=>x.activo),sp=ac.reduce((a,x)=>a+ +x.porcentaje,0),T=k=>rs.reduce((a,x)=>a+ +x[k],0),now=hoy().slice(0,7);
+  $("#main").innerHTML=`${Hdr("Capital & Participación","Inversores","Administración de aportes, participación sobre utilidades, liquidaciones mensuales y reinversiones.")}
+  <div class="g">${K("Inversores activos",ac.length)}${K("Capital total aportado",$m(T("capital_aportado")))}${K("Capital reinvertido",$m(T("reinvertido")))}${K("Ganancias generadas para inversores",$m(T("ganancias_generadas")+T("ajustes")))}${K("Ganancias retiradas",$m(T("retirado")))}${K("Pendiente de retiro / decisión",$m(T("pendiente")),T("pendiente")<0?"neg":"pos")}${K("Participación de inversores",pc(sp))}${K("Participación del propietario",pc(100-sp),"pos")}</div>
+  <p class="m" style="margin-top:12px">Los porcentajes son participación en la <b>ganancia neta distribuible</b> (ventas cobradas − costo de mercadería − gastos), no sobre la facturación ni sobre la propiedad de la empresa.</p>
+  <h3>Comparativa</h3><div class="box"><div class="row"><div style="max-width:260px"><label>Filtrar por inversor</label><select id="fi"><option value="">Todos</option>${rs.map(x=>`<option value="${x.acuerdo_id}">${esc(x.nombre)}</option>`).join("")}</select></div></div></div><div class="box t" id="ct"></div>
+  <h3>Nuevo inversor</h3><div class="box"><div class="row"><div><label>Nombre y apellido</label><input id="ni"></div>${F("Participación (%)","np","")}${F("Participa desde (mes)","nd",now,"month")}${F("Capital inicial aportado ($)","na","")}<div><label>Notas</label><input id="nn"></div><div style="flex:none"><button class="b" id="ng">Crear inversor</button></div></div><p class="m" id="nh" style="margin-top:10px"></p></div>
+  <h3>Pendientes de decisión (retirar / reinvertir)</h3><div class="box t"><table><thead><tr><th>Inversor</th><th>Período</th><th class="r">Ganancia pendiente</th><th></th></tr></thead><tbody>${pend.map((p,k)=>`<tr><td>${esc(p.nombre)}</td><td>${mm(p.periodo)}</td><td class="r" style="font-weight:600">${$m(p.pendiente)}</td><td>${p.pendiente>0?`<button class="b s" data-dd="${k}">Decidir</button>`:'<span class="m">saldo a compensar</span>'}</td></tr>`).join("")||'<tr><td colspan="4" class="m">No hay ganancias pendientes de decisión</td></tr>'}</tbody></table></div><div id="dec"></div>
+  <h3>Liquidación mensual</h3><div class="box row"><div style="max-width:200px"><label>Mes</label><input id="lm" type="month" value="${new Date(new Date().getFullYear(),new Date().getMonth()-1,1).toLocaleDateString("sv-SE").slice(0,7)}"></div><div style="flex:none"><button class="b s" id="lv">Ver distribución</button> <button class="b" id="lq">Liquidar mes</button></div><div><label><input id="lp" type="checkbox" style="width:auto"> Parcial (mes en curso)</label></div></div><div id="ld"></div>
+  ${dif.length?`<div class="box t"><table><thead><tr><th>Período</th><th class="r">Liquidado</th><th class="r">Calculado</th><th class="r">Diferencia</th><th>Estado</th></tr></thead><tbody>${dif.map(d=>`<tr><td>${mm(d.periodo)}</td><td class="r">${$m(d.liquidado)}</td><td class="r">${$m(d.calculado)}</td><td class="r">${$m(d.diferencia)}</td><td>${d.estado}</td></tr>`).join("")}</tbody></table><p class="m">Un período "desactualizado" cambió después de liquidarse (anulación, gasto, cambio de porcentaje). Liquidarlo de nuevo genera un ajuste identificable; la liquidación original no se modifica.</p></div>`:""}
+  <h3>Reporte de inversores</h3><div class="box"><div class="row"><div><label>Inversor</label><select id="ri"><option value="">Todos</option>${rs.map(x=>`<option value="${x.acuerdo_id}">${esc(x.nombre)}</option>`).join("")}</select></div>${F("Desde (mes)","rd2",new Date().getFullYear()+"-01","month")}${F("Hasta (mes)","rh2",now,"month")}<div><label>Agrupar por</label><select id="rg"><option value="mes">Mes</option><option value="anio">Año</option></select></div><div style="flex:none"><button class="b" id="rb">Generar</button> <button class="b s" id="rc">Exportar Excel (CSV)</button> <button class="b s" id="rp2">Imprimir / PDF</button></div></div></div><div id="rr"></div>
+  <h3>Historial de movimientos</h3><div class="box"><div class="row"><div><label>Inversor</label><select id="hi"><option value="">Todos</option>${rs.map(x=>`<option>${esc(x.nombre)}</option>`).join("")}</select></div><div><label>Tipo</label><select id="ht"><option value="">Todos</option>${[...new Set(his.map(h=>h.tipo))].map(t=>`<option>${t}</option>`).join("")}</select></div>${F("Desde","hd","","date")}${F("Hasta","hh","","date")}<div style="flex:none"><button class="b s" id="hx">Exportar Excel (CSV)</button></div></div></div><div id="hb"></div>`;
+  const pt=()=>{const f=$("#fi").value;$("#ct").innerHTML=`<table><thead><tr><th>Inversor</th><th class="r">Participación</th><th class="r">Capital aportado</th><th class="r">Ganancias generadas</th><th class="r">Reinvertido</th><th class="r">Retirado</th><th class="r">Pendiente</th><th>Estado</th></tr></thead><tbody>${rs.filter(x=>!f||x.acuerdo_id==f).map(x=>`<tr data-v="${x.acuerdo_id}" style="cursor:pointer"><td><b>${esc(x.nombre)}</b></td><td class="r">${pc(x.porcentaje)}</td><td class="r">${$m(x.capital_aportado)}</td><td class="r">${$m(+x.ganancias_generadas+ +x.ajustes)}</td><td class="r">${$m(x.reinvertido)}</td><td class="r">${$m(x.retirado)}</td><td class="r" style="font-weight:600">${$m(x.pendiente)}</td><td><span class="tag ${x.activo?"cobrada":"anulada"}">${x.activo?"Activo":"Inactivo"}</span></td></tr>`).join("")||'<tr><td colspan="8" class="m">Todavía no hay inversores</td></tr>'}</tbody></table><p class="m" style="margin-top:10px">Tocá un inversor para abrir su ficha completa.</p>`;
+    $$("tr[data-v]").forEach(tr=>tr.onclick=()=>{st.iid=tr.dataset.v;draw()})};
+  $("#fi").onchange=pt;pt();
+  const nh=()=>{$("#nh").textContent=`El propietario quedaría con ${pc(100-sp-(+$("#np").value||0))} (100 % − suma de inversores).`};$("#np").oninput=nh;nh();
+  $("#ng").onclick=async()=>{if(await act(()=>rpc("crear_inversor",{p_nombre:$("#ni").value,p_porcentaje:+$("#np").value,p_desde:$("#nd").value+"-01",p_notas:$("#nn").value||null,p_aporte:+$("#na").value||null}),"Inversor creado"))draw()};
+  $$("[data-dd]").forEach(b=>b.onclick=()=>{const p=pend[b.dataset.dd];decForm($("#dec"),rs.find(x=>x.acuerdo_id==p.acuerdo_id),p)});
+  $("#lv").onclick=async()=>act(async()=>{const d=await rpc("distribucion_periodo",{p_periodo:$("#lm").value+"-01"});
+    $("#ld").innerHTML=`<div class="box t"><table><thead><tr><th>Participante</th><th class="r">%</th><th class="r">Corresponde</th><th class="r">Ya liquidado</th><th class="r">Diferencia</th></tr></thead><tbody>${d.map(r=>`<tr><td>${esc(r.nombre)}</td><td class="r">${pc(r.porcentaje)}</td><td class="r">${$m(r.calculado)}</td><td class="r">${$m(r.liquidado)}</td><td class="r">${$m(r.diferencia)}</td></tr>`).join("")}</tbody></table></div>`},"Distribución calculada");
+  $("#lq").onclick=async()=>{if($("#lm").value&&confirm("¿Liquidar el período? Se acreditan las ganancias a cada inversor.")&&await act(()=>rpc("liquidar_periodo",{p_periodo:$("#lm").value+"-01",p_forzar:$("#lp").checked}),"Período liquidado"))draw()};
+  let RR=null;
+  $("#rb").onclick=()=>act(async()=>{const sel=$("#ri").value,d=$("#rd2").value+"-01",h=$("#rh2").value+"-01",g=$("#rg").value;
+    const[lp,li]=await Promise.all([q(sb.from("liquidaciones_periodo").select("*").order("seq")),q(sb.from("liquidaciones").select("acuerdo_id,periodo,importe_inversor"))]);
+    const P={},ok=p=>p>=d&&p<=h,key=p=>g=="anio"?p.slice(0,4):p.slice(0,7),Z=k=>P[k]??={f:0,c:0,g:0,n:0,o:0,i:0,r:0,v:0},snap={};
+    lp.filter(x=>ok(x.periodo)).forEach(x=>{snap[x.periodo]=x;Z(key(x.periodo)).o+=+x.importe_dueno});
+    Object.values(snap).forEach(x=>{const z=Z(key(x.periodo));z.f+=+x.facturacion;z.c+=+x.costo_mercaderia;z.g+=+x.gastos_operativos;z.n+=+x.ganancia_neta});
+    li.filter(x=>ok(x.periodo)&&(!sel||x.acuerdo_id==sel)).forEach(x=>Z(key(x.periodo)).i+=+x.importe_inversor);
+    his.filter(x=>x.periodo&&ok(x.periodo)&&(!sel||x.acuerdo_id==sel)).forEach(x=>{if(x.tipo=="Retiro de ganancias")Z(key(x.periodo)).r-=+x.importe;if(x.tipo=="Reinversión")Z(key(x.periodo)).v-=+x.importe});
+    const rows=Object.keys(P).sort().map(k=>{const z=P[k];return[k,z.f,z.c,z.g,z.n,z.i,z.o,z.r,z.v,z.i-z.r-z.v]}),tot=rows.reduce((a,r)=>a.map((v,i)=>i?v+r[i]:"TOTAL"),["TOTAL",0,0,0,0,0,0,0,0,0]);
+    RR={head:["Período","Ventas","Costos","Gastos","Ganancia neta","Participación inversor(es)","Propietario","Retiros","Reinversiones","Pendiente"],rows:[...rows,tot]};
+    $("#rr").innerHTML=`<div class="box t"><table><thead><tr>${RR.head.map((x,i)=>`<th class="${i?"r":""}">${x}</th>`).join("")}</tr></thead><tbody>${RR.rows.map(r=>`<tr>${r.map((v,i)=>`<td class="r" ${i?"":'style="text-align:left"'}>${i?$m(v):(/^\d{4}-\d\d$/.test(v)?mm(v+"-01"):v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`},"Reporte generado");
+  $("#rc").onclick=()=>RR?csv("Reporte_inversores",RR.head,RR.rows):toast("Primero generá el reporte",1);$("#rp2").onclick=()=>print();
+  const ph=()=>{const f=his.filter(h=>(!$("#hi").value||h.inversor==$("#hi").value)&&(!$("#ht").value||h.tipo==$("#ht").value)&&(!$("#hd").value||h.fecha>=$("#hd").value)&&(!$("#hh").value||h.fecha<=$("#hh").value));$("#hb").innerHTML=histTabla(f.slice(0,300));return f};
+  ["#hi","#ht","#hd","#hh"].forEach(x=>$(x).oninput=ph);ph();$("#hx").onclick=()=>histCsv("Historial_inversores",ph());
+};
+
+async function ficha(rs,adm){
+  const x=rs.find(r=>r.acuerdo_id==st.iid),id=x.acuerdo_id;
+  const[his,pend,pcts,aps]=await Promise.all([rpc("historial_inversor",{p_acuerdo:id}),rpc("pendientes_decision"),q(sb.from("porcentajes_inversor").select("*").eq("acuerdo_id",id).order("seq")),q(sb.from("aportes_inversor").select("*").eq("acuerdo_id",id).order("fecha"))]);
+  const mine=pend.filter(p=>p.acuerdo_id==id),S=a=>a.reduce((t,v)=>t+ +v,0),ini=S(aps.filter(a=>a.tipo=="inicial").map(a=>a.importe)),adi=S(aps.filter(a=>a.tipo!="inicial").map(a=>a.importe)),gen=+x.ganancias_generadas+ +x.ajustes,pdec=S(mine.filter(p=>p.pendiente>0).map(p=>p.pendiente)),otros=rs.filter(r=>r.acuerdo_id!=id&&r.activo).reduce((a,r)=>a+ +r.porcentaje,0);
+  const byM=(rows,f)=>{const m={};rows.forEach(r=>{const k=f(r);if(k)m[k]=(m[k]||0)+Math.abs(+r.importe)});return m};
+  const gm={};his.filter(h=>["Ganancia generada","Ajuste"].includes(h.tipo)&&h.periodo).forEach(h=>{const k=h.periodo.slice(0,7);gm[k]=(gm[k]||0)+ +h.importe});
+  const ret=byM(his.filter(h=>h.tipo=="Retiro de ganancias"),h=>h.fecha.slice(0,7)),rei=byM(his.filter(h=>h.tipo=="Reinversión"),h=>h.fecha.slice(0,7)),apm=byM(aps.map(a=>({importe:a.importe,fecha:a.fecha})),a=>a.fecha.slice(0,7));
+  const M1=Object.keys(gm).sort(),M2=[...new Set([...Object.keys(ret),...Object.keys(rei),...Object.keys(apm)])].sort();let ca=0,cr=0;
+  const cum=M2.map(k=>{ca+=apm[k]||0;cr+=rei[k]||0;return[ca,cr]}),lab=k=>mm(k+"-01");
+  $("#main").innerHTML=`${adm?'<p><button class="b s" id="vb">← Todos los inversores</button></p>':""}${Hdr("Cuenta Individual",esc(x.nombre),`Participación actual ${pc(x.porcentaje)} · incorporado ${x.fecha_incorporacion}${x.notas?" · "+esc(x.notas):""}`)}
+  <div class="g">${K("Capital inicial aportado",$m(ini))}${K("Aportes adicionales",$m(adi))}${K("Total capital aportado",$m(x.capital_aportado))}${K("Ganancias históricas generadas",$m(gen))}${K("Ganancias pendientes de decisión",$m(pdec))}${K("Ganancias retiradas",$m(x.retirado))}${K("Ganancias reinvertidas",$m(x.reinvertido))}${K("Capital reinvertido acumulado",$m(x.reinvertido))}${K("Saldo pendiente de retiro",$m(x.pendiente),x.pendiente<0?"neg":"pos")}${K("Generó para sí mismo (retirado)",$m(x.retirado))}${K("Dejó reinvertido en GYA DECO",$m(x.reinvertido)+(gen>0?" · "+pc(x.reinvertido/gen*100):""))}</div>
+  <h3>Ganancias mensuales</h3>${chart(M1.map(lab),[{n:"Ganancia",c:"#9C7D4C",v:M1.map(k=>gm[k])}])}
+  <h3>Capital aportado y reinvertido (acumulado)</h3>${chart(M2.map(lab),[{n:"Capital aportado",c:"#9C7D4C",v:cum.map(c=>c[0])},{n:"Reinvertido",c:"#3D7A56",v:cum.map(c=>c[1])}])}
+  <h3>Retirado vs reinvertido</h3>${chart(M2.map(lab),[{n:"Retirado",c:"#B8AFA2",v:M2.map(k=>ret[k]||0)},{n:"Reinvertido",c:"#3D7A56",v:M2.map(k=>rei[k]||0)}])}
+  <h3>Evolución del porcentaje de participación</h3>${chart(pcts.map(p=>mm(p.vigente_desde)),[{n:"Participación",c:"#9C7D4C",v:pcts.map(p=>+p.porcentaje)}],pc)}
+  ${adm?`<h3>Ganancias pendientes de decisión</h3><div class="box t"><table><thead><tr><th>Período</th><th class="r">Pendiente</th><th></th></tr></thead><tbody>${mine.map((p,k)=>`<tr><td>${mm(p.periodo)}</td><td class="r">${$m(p.pendiente)}</td><td>${p.pendiente>0?`<button class="b s" data-dd="${k}">Decidir (retirar / reinvertir / parcial)</button>`:'<span class="m">saldo a compensar con ganancias futuras</span>'}</td></tr>`).join("")||'<tr><td colspan="3" class="m">Sin ganancias pendientes</td></tr>'}</tbody></table></div><div id="dec"></div>
+  <h3>Aporte de capital</h3><div class="box row">${F("Importe ($)","ai","")}${F("Fecha","af",hoy(),"date")}<div><label>Concepto</label><input id="ac" placeholder="Aporte adicional"></div><div style="flex:none"><button class="b" id="ag">Registrar aporte</button></div></div>
+  <p class="m">El aporte es dinero que el inversor pone de su bolsillo: entra a la caja y no es ganancia ni se retira desde el saldo de ganancias.</p>
+  <h3>Cambiar porcentaje</h3><div class="box row">${F("Nuevo porcentaje (%)","cp",x.porcentaje)}${F("Rige desde (mes)","cd",hoy().slice(0,7),"month")}<div><label>Motivo</label><input id="cm"></div><div style="flex:none"><button class="b" id="cg">Guardar cambio</button></div></div>
+  <p class="m" id="ch"></p><p class="m">El cambio rige desde el 1° del mes elegido y no altera liquidaciones ya hechas. Si afecta meses anteriores, esos meses quedan marcados como "desactualizados" para corregirlos con un ajuste.</p>
+  <h3>Ajuste autorizado</h3><div class="box row">${F("Importe (+ o −)","xj","")}<div><label>Concepto</label><input id="xc"></div>${F("Período (mes, opcional)","xp","","month")}<div style="flex:none"><button class="b s" id="xg">Registrar ajuste</button></div></div>
+  <h3>Datos y estado</h3><div class="box row"><div><label>Nombre y apellido</label><input id="en" value="${esc(x.nombre)}"></div><div><label>Notas y observaciones</label><input id="eo" value="${esc(x.notas)}"></div><div><label>Vincular acceso (email del usuario)</label><input id="ee" placeholder="opcional"></div><div style="flex:none"><button class="b s" id="es">Guardar datos</button></div></div>
+  <div class="box row">${x.activo?`${F("Desactivar desde (mes)","ed",hoy().slice(0,7),"month")}<div style="flex:none"><button class="b s" id="ex">Desactivar inversor</button></div>`:`${F("Reactivar con porcentaje (%)","er","")}${F("Desde (mes)","ed",hoy().slice(0,7),"month")}<div style="flex:none"><button class="b" id="ey">Reactivar inversor</button></div>`}</div>`:""}
+  <h3>Historial</h3><div class="row np"><div style="flex:none"><button class="b s" id="hx">Exportar Excel (CSV)</button> <button class="b s" onclick="print()">Imprimir / PDF</button></div></div>${histTabla(his,1)}`;
+  if($("#vb"))$("#vb").onclick=()=>{st.iid=null;draw()};$("#hx").onclick=()=>histCsv("Historial_"+x.nombre.replace(/\s+/g,"_"),his);
+  if(!adm)return;
+  $$("[data-dd]").forEach(b=>b.onclick=()=>decForm($("#dec"),x,mine[b.dataset.dd]));
+  const nz=()=>{$("#ch").textContent=`El propietario quedaría con ${pc(100-otros-(+$("#cp").value||0))} (si no hay otros cambios).`};$("#cp").oninput=nz;nz();
+  const go=(f,a,m)=>async()=>{if(await act(()=>rpc(f,a()),m))draw()};
+  $("#ag").onclick=go("registrar_aporte_inversor",()=>({p_acuerdo:id,p_importe:+$("#ai").value,p_fecha:$("#af").value,p_concepto:$("#ac").value||null}),"Aporte registrado");
+  $("#cg").onclick=go("cambiar_porcentaje",()=>({p_acuerdo:id,p_porcentaje:+$("#cp").value,p_desde:$("#cd").value+"-01",p_motivo:$("#cm").value||null}),"Porcentaje actualizado");
+  $("#xg").onclick=go("registrar_ajuste_inversor",()=>({p_acuerdo:id,p_importe:+$("#xj").value,p_concepto:$("#xc").value,p_periodo:$("#xp").value?$("#xp").value+"-01":null}),"Ajuste registrado");
+  $("#es").onclick=go("editar_inversor",()=>({p_acuerdo:id,p_nombre:$("#en").value,p_notas:$("#eo").value||null,p_email:$("#ee").value||null}),"Datos guardados");
+  if($("#ex"))$("#ex").onclick=async()=>{if(confirm("El inversor deja de participar desde ese mes. Su historial se conserva. ¿Continuar?"))go("desactivar_inversor",()=>({p_acuerdo:id,p_desde:$("#ed").value+"-01"}),"Inversor desactivado")()};
+  if($("#ey"))$("#ey").onclick=go("reactivar_inversor",()=>({p_acuerdo:id,p_porcentaje:+$("#er").value,p_desde:$("#ed").value+"-01"}),"Inversor reactivado");
+}
+
+V.cli=async()=>{
+  const[cs,vs]=await Promise.all([q(sb.from("clientes").select("*").order("nombre")),q(sb.from("ventas").select("cliente_id,fecha,total,estado").not("cliente_id","is",null))]);
+  const S={};vs.forEach(v=>{if(v.estado=="anulada")return;const x=S[v.cliente_id]??={n:0,t:0,u:""};x.n++;if(v.estado=="cobrada")x.t+=+v.total;if(v.fecha>x.u)x.u=v.fecha});
+  const ed=cs.find(c=>c.id==st.cid)||{};
+  $("#main").innerHTML=`${Hdr("Relaciones Comerciales","Clientes","Directorio de clientes, arquitectos, obras e historial de compras.")}
+  <div class="box"><h3 style="margin-top:0">${ed.id?"Editar cliente":"Nuevo cliente"}</h3><div class="row"><div><label>Nombre / Razón social *</label><input id="cn" value="${esc(ed.nombre)}"></div><div><label>CUIT / DNI</label><input id="cd" value="${esc(ed.documento)}"></div><div><label>Teléfono</label><input id="ct" value="${esc(ed.telefono)}"></div><div><label>Email</label><input id="ce" value="${esc(ed.email)}"></div></div>
+  <div class="row" style="margin-top:12px"><div><label>Dirección</label><input id="cdi" value="${esc(ed.direccion)}"></div><div><label>Notas</label><input id="cnt" value="${esc(ed.notas)}"></div><div style="flex:none"><button class="b" id="cg">Guardar</button> ${ed.id?'<button class="b s" id="cx">Cancelar</button>':""}</div></div></div>
+  <div class="box"><label>Buscar cliente</label><input id="cq" placeholder="Nombre, CUIT, teléfono o dirección…"></div><div class="box t" id="ct2"></div>`;
+  const pint=()=>{const q2=$("#cq").value.toLowerCase();const f=cs.filter(c=>!q2||(c.nombre+" "+(c.documento||"")+" "+(c.telefono||"")+" "+(c.email||"")+" "+(c.direccion||"")).toLowerCase().includes(q2));
+    $("#ct2").innerHTML=`<table><thead><tr><th>Cliente</th><th>CUIT / DNI</th><th>Teléfono</th><th>Dirección</th><th class="r">Compras</th><th class="r">Total comprado</th><th>Última compra</th><th></th></tr></thead><tbody>${f.map(c=>{const x=S[c.id]||{n:0,t:0,u:""};return`<tr><td><b>${esc(c.nombre)}</b></td><td>${esc(c.documento)}</td><td>${esc(c.telefono)}</td><td>${esc(c.direccion)}</td><td class="r">${x.n}</td><td class="r" style="font-weight:600">${$m(x.t)}</td><td>${x.u}</td><td><button class="b s" data-e="${c.id}">Editar</button> <button class="b s" data-vc="${c.id}">Ver compras</button></td></tr>`}).join("")||'<tr><td colspan="8" class="m">Sin clientes</td></tr>'}</tbody></table><p class="m" style="margin-top:10px">${f.length} clientes</p>`;
+    $$("[data-e]").forEach(b=>b.onclick=()=>{st.cid=b.dataset.e;draw()});
+    $$("[data-vc]").forEach(b=>b.onclick=()=>{st.fcli=cs.find(c=>c.id==b.dataset.vc).nombre;view="hist";draw()})};
+  $("#cq").oninput=pint;pint();
+  if($("#cx"))$("#cx").onclick=()=>{st.cid=null;draw()};
+  $("#cg").onclick=async()=>{const d={nombre:$("#cn").value.trim(),documento:$("#cd").value.trim()||null,telefono:$("#ct").value.trim()||null,email:$("#ce").value.trim()||null,direccion:$("#cdi").value.trim()||null,notas:$("#cnt").value.trim()||null};
+    if(!d.nombre)return toast("El nombre es obligatorio",1);
+    if(await act(()=>q(ed.id?sb.from("clientes").update(d).eq("id",ed.id):sb.from("clientes").insert(d)),"Cliente guardado")){st.cid=null;draw()}};
+};
+
+// ===== PRESUPUESTOS (dentro del sistema, se guardan en la base) =====
+const pad=n=>String(n).padStart(5,"0"),GOLD=[176,141,74],DARK=[28,27,25],GR=[110,105,96],r2=v=>Math.round(v*100)/100;
+let byPrice=false,selP=null;
+function calcP(){const g=i=>+($("#"+i).value)||0,w=g("pw"),h=g("ph"),ar=w*h/1e4,m2=g("pm"),mer=g("pmer"),pl=ar>0?Math.ceil(m2*(1+mer/100)/ar-1e-9):0,cost=g("pco"),mk=g("pmk"),pvu=byPrice?g("pvp"):cost*(1+mk/100),sub=pl*pvu,d=Math.min(100,g("pd")),dm=sub*d/100,gr=m2>10,env=gr?0:g("pen"),neto=sub-dm;
+  return{w,h,ar,m2,mer,placas:pl,cost,mk,pvu,sub,d,dm,gr,env,neto,total:neto+env,gan:neto-pl*cost,val:g("pv")||7,cubre:pl*ar,rec:cost>0?(pvu/cost-1)*100:0,mg:pvu>0?(pvu-cost)/pvu*100:0}}
+const rowP=r=>{const ar=r.ancho_cm*r.alto_cm/1e4;return{numero:r.numero,fecha:r.fecha,cliente:r.cliente_nombre,tel:r.telefono,dir:r.direccion,w:+r.ancho_cm,h:+r.alto_cm,ar,m2:+r.m2,mer:+r.merma_pct,placas:r.placas,pvu:+r.precio_unitario,sub:+r.subtotal,d:+r.descuento_pct,dm:+r.descuento_monto,env:+r.envio,gr:+r.m2>10,neto:r.subtotal-r.descuento_monto,total:+r.total,val:r.validez_dias,cubre:r.placas*ar,pdesc:r.producto_desc}};
+function pHead(doc,t,P){doc.setFillColor(...DARK);doc.rect(0,0,210,38,"F");doc.setTextColor(210,173,106);doc.setFont("times","normal");doc.setFontSize(28);doc.text("G Y A   D E C O",105,19,{align:"center"});
+  doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(200,195,185);doc.text("PLACAS DE PVC",105,27,{align:"center"});doc.setFillColor(...GOLD);doc.rect(0,38,210,1.2,"F");
+  doc.setTextColor(...DARK);doc.setFont("times","bold");doc.setFontSize(18);doc.text(t,15,56);doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(...GR);
+  doc.text("N° "+pad(P.numero),195,52,{align:"right"});doc.text("Fecha: "+P.fecha.split("-").reverse().join("/"),195,57,{align:"right"});
+  doc.setTextColor(...DARK);doc.setFontSize(10);let y=70;
+  [["Cliente:",P.cliente||"-"],["Tel.:",P.tel],["Entrega:",P.dir]].forEach(([l,v])=>{if(!v)return;doc.setFont("helvetica","bold");doc.text(l,15,y);doc.setFont("helvetica","normal");doc.text(String(v),35,y);y+=6});return y+4}
+function pTh(doc,y,cols){doc.setFillColor(...DARK);doc.rect(15,y,180,8,"F");doc.setTextColor(210,173,106);doc.setFont("helvetica","bold");doc.setFontSize(9);cols.forEach(c=>doc.text(c[0],c[1],y+5.4,{align:c[2]||"left"}));doc.setTextColor(...DARK);doc.setFont("helvetica","normal")}
+function pFoot(doc,t){doc.setDrawColor(...GOLD);doc.line(15,278,195,278);doc.setFontSize(8);doc.setTextColor(...GR);doc.text(t,105,284,{align:"center"})}
+function pdfPres(P){const doc=new window.jspdf.jsPDF({unit:"mm",format:"a4"});let y=pHead(doc,"PRESUPUESTO",P);
+  pTh(doc,y,[["DESCRIPCIÓN",18],["CANT.",115,"right"],["P. UNIT.",155,"right"],["SUBTOTAL",192,"right"]]);y+=15;doc.setFontSize(10);
+  const dl=doc.splitTextToSize(P.pdesc||`Placa de PVC ${nn(P.w)}x${nn(P.h)} cm`,82);doc.text(dl,18,y);doc.text(String(P.placas),115,y,{align:"right"});doc.text($m(P.pvu),155,y,{align:"right"});doc.text($m(P.sub),192,y,{align:"right"});y+=(dl.length-1)*4.5;
+  y+=6;doc.setFontSize(8.5);doc.setTextColor(...GR);doc.text(`Medida de la placa: ${nn(P.w)} x ${nn(P.h)} cm  |  ${nn(P.ar)} m² por placa`,18,y);
+  y+=5;doc.text(`Superficie solicitada: ${nn(P.m2)} m²`+(P.mer>0?`  |  Merma considerada: ${nn(P.mer)}%`:""),18,y);
+  y+=5;doc.setFont("helvetica","bold");doc.setTextColor(...DARK);doc.text(`Superficie total cubierta: ${nn(P.cubre)} m²  (${P.placas} placas x ${nn(P.ar)} m²)`,18,y);doc.setFont("helvetica","normal");
+  doc.setDrawColor(228,222,211);doc.line(15,y+4,195,y+4);y+=16;doc.setFontSize(10);
+  const row=(l,v)=>{doc.text(l,135,y);doc.text(v,192,y,{align:"right"});y+=7};
+  row("Subtotal",$m(P.sub));if(P.d>0)row(`Descuento (${nn(P.d)}%)`,"- "+$m(P.dm));row("Envío",P.gr?"GRATIS":$m(P.env));
+  y+=2;doc.setFillColor(...DARK);doc.rect(130,y-5,65,12,"F");doc.setTextColor(210,173,106);doc.setFont("times","bold");doc.setFontSize(13);doc.text("TOTAL",135,y+3);doc.text($m(P.total),192,y+3,{align:"right"});
+  doc.setFont("helvetica","normal");doc.setTextColor(...GR);doc.setFontSize(8);if(P.gr)doc.text("Envío sin cargo por compras superiores a 10 m².",15,y+3);
+  pFoot(doc,`Presupuesto válido por ${P.val} días  |  GYA DECO`);doc.save(`Presupuesto-GYA-DECO-${pad(P.numero)}.pdf`)}
+function pdfRem(P){const doc=new window.jspdf.jsPDF({unit:"mm",format:"a4"});let y=pHead(doc,"REMITO",P);
+  pTh(doc,y,[["CANTIDAD",18],["DESCRIPCIÓN DEL ARTÍCULO",50],["PRECIO FINAL",192,"right"]]);y+=15;
+  const fila=(q,d,p,sub)=>{doc.setFontSize(10);doc.setTextColor(...DARK);doc.text(q,18,y);doc.text(d,50,y);doc.text(p,192,y,{align:"right"});
+    if(sub){doc.setFontSize(8.5);doc.setTextColor(...GR);sub.forEach(t=>{y+=5;doc.text(t,50,y)})}doc.setDrawColor(228,222,211);doc.line(15,y+3,195,y+3);y+=8};
+  fila(String(P.placas),(P.pdesc||`Placa de PVC ${nn(P.w)}x${nn(P.h)} cm`)+(P.d>0?` (desc. ${nn(P.d)}%)`:""),$m(P.neto),[`Medida: ${nn(P.w)} x ${nn(P.h)} cm  |  ${nn(P.ar)} m² por placa`,`Superficie total cubierta: ${nn(P.cubre)} m²  (${P.placas} placas x ${nn(P.ar)} m²)`]);
+  fila("1","Envío",P.gr?"GRATIS":$m(P.env));
+  y+=4;doc.setFillColor(...DARK);doc.rect(120,y-5,75,12,"F");doc.setTextColor(210,173,106);doc.setFont("times","bold");doc.setFontSize(13);doc.text("TOTAL",125,y+3);doc.text($m(P.total),192,y+3,{align:"right"});
+  doc.setFont("helvetica","normal");doc.setTextColor(...DARK);doc.setFontSize(9);doc.text("Recibí conforme la mercadería detallada.",15,232);doc.setDrawColor(...DARK);
+  doc.line(15,255,90,255);doc.text("Firma y aclaración - GYA DECO (entrega)",15,260);doc.line(120,255,195,255);doc.text("Firma y aclaración - Cliente (recibe)",120,260);
+  pFoot(doc,"Documento no válido como factura  |  GYA DECO");doc.save(`Remito-GYA-DECO-${pad(P.numero)}.pdf`)}
+V.pres=async()=>{
+  byPrice=false;selP=null;
+  const[CL,rows,PR]=await Promise.all([q(sb.from("clientes").select("id,nombre,telefono,direccion").eq("activo",true).order("nombre")),q(sb.from("presupuestos").select("*").order("numero",{ascending:false}).limit(200)),q(sb.from("productos").select("*").eq("activo",true).order("sku"))]);
+  const R=rows,IN=(l,id,v,t)=>`<div><label>${l}</label><input id="${id}" type="${t||"number"}" step="any" value="${v}"></div>`;
+  $("#main").innerHTML=`${Hdr("Cotizador & Documentos","Presupuestos","Calculá superficie en m², cantidad de placas, merma y generá presupuestos o remitos en PDF.")}
+  <datalist id="cls">${CL.map(c=>`<option value="${esc(c.nombre)}">`).join("")}</datalist><datalist id="prp">${PR.map(p=>`<option value="${esc(p.sku)}">${esc(p.descripcion)}</option>`).join("")}</datalist>
+  <div class="g2"><div class="box" id="fm"><h3 style="margin-top:0">Cliente</h3><div class="row"><div><label>Cliente</label><input id="xc" list="cls" placeholder="Buscar o escribir nombre"></div><div><label>Teléfono</label><input id="xt"></div></div><div class="row" style="margin-top:10px"><div><label>Dirección de entrega</label><input id="xd"></div></div>
+  <h3>Producto</h3><div class="row"><div><label>Producto del catálogo (SKU o nombre)</label><input id="xp" list="prp" placeholder="Elegí un producto: se completan costo, precio y medidas"></div></div><p class="m" id="xi"></p>
+  <div class="row">${IN("Ancho (cm)","pw",50)}${IN("Alto (cm)","ph",50)}</div><div class="row" style="margin-top:10px">${IN("Costo por unidad ($)","pco",0)}${IN("Aumento sobre costo (%)","pmk",33.601)}${IN("Precio de venta por unidad ($)","pvp",0)}</div>
+  <h3>Pedido</h3><div class="row">${IN("Metros cuadrados (m²)","pm",10)}${IN("Desperdicio / merma (%)","pmer",0)}</div><div class="row" style="margin-top:10px">${IN("Descuento (%)","pd",0)}${IN("Costo de envío si ≤ 10 m² ($)","pen",0)}${IN("Validez (días)","pv",7)}</div></div>
+  <div class="box"><h3 style="margin-top:0">Resumen de cotización</h3><div id="rs"></div><div class="row" style="margin-top:14px"><div><button class="b s" id="pg" style="width:100%">Guardar</button></div><div><button class="b" id="pp" style="width:100%">Guardar y descargar PDF</button></div><div><button class="b s" id="pr" style="width:100%">Guardar y armar remito</button></div></div></div></div>
+  <h3>Presupuestos guardados</h3><div class="box t" id="pt"></div>`;
+  const g=i=>+($("#"+i).value)||0,syncP=()=>{const c=g("pco");if(byPrice)$("#pmk").value=c>0?r3((g("pvp")/c-1)*100):0;else $("#pvp").value=r2(c*(1+g("pmk")/100))};
+  $("#pmk").addEventListener("input",()=>{byPrice=false;syncP()});$("#pvp").addEventListener("input",()=>{byPrice=true;syncP()});$("#pco").addEventListener("input",syncP);
+  const pick=()=>{const v=$("#xp").value.trim().toLowerCase(),p=PR.find(x=>x.sku.toLowerCase()==v||x.descripcion.toLowerCase()==v);selP=p||null;
+    if(!p){$("#xi").textContent=v?"Ese producto no está en el catálogo: se presupuesta como placa libre.":"";rs();return}
+    if(+p.ancho_cm>0)$("#pw").value=p.ancho_cm;if(+p.alto_cm>0)$("#ph").value=p.alto_cm;$("#pco").value=p.costo;
+    if(+p.precio_venta>0){$("#pvp").value=p.precio_venta;byPrice=true}else byPrice=false;syncP();
+    $("#xi").innerHTML=`<b>${esc(p.descripcion)}</b> · stock disponible ${p.stock==null?"sin control":nn(p.stock)} · costo ${$m(p.costo)} · precio de catálogo ${$m(p.precio_venta)}${+p.ancho_cm>0?"":" · <span class=\"err\">sin medidas cargadas: completá ancho y alto o guardalos en el producto</span>"}`;rs()};
+  const rs=()=>{const c=calcP(),need=c.placas,st2=selP&&selP.stock!=null?selP.stock:null;$("#rs").innerHTML=[["Superficie por unidad",nn(c.ar)+" m²"],["Unidades necesarias",`<b>${c.placas}</b> (cubren ${nn(c.cubre)} m²)`],["Precio de venta por unidad",$m(c.pvu)],["Subtotal",$m(c.sub)],[`Descuento (${nn(c.d)}%)`,"- "+$m(c.dm)],["Envío",c.gr?'<span style="color:var(--ok);font-weight:600">GRATIS (más de 10 m²)</span>':$m(c.env)]].map(x=>`<div class="ln"><span>${x[0]}</span><span>${x[1]}</span></div>`).join("")
+    +`<div class="tot"><span>TOTAL FINAL</span><b>${$m(c.total)}</b></div><div class="box" style="background:var(--gold-soft);border-color:#D8C8AE;margin-bottom:0"><h3 style="margin-top:0">Análisis interno · no sale en los PDF</h3><div class="ln"><span>Costo unitario</span><span>${$m(c.cost)}</span></div><div class="ln"><span>Recargo sobre costo</span><span>${nn(c.rec)} %</span></div><div class="ln"><span>Margen sobre precio de venta</span><span>${nn(c.mg)} %</span></div><div class="ln"><span>Costo total de las unidades</span><span>${$m(c.placas*c.cost)}</span></div><div class="ln"><span><b>Ganancia</b></span><span style="color:var(--ok)"><b>${$m(c.gan)}</b> (${c.neto>0?nn(c.gan/c.neto*100):0}% de la venta)</span></div>${st2!=null?`<div class="ln" style="border:0"><span>Stock disponible del producto</span><span style="color:var(--${st2>=need?"ok":"bad"});font-weight:600">${nn(st2)} ${st2>=need?"✓ alcanza":"✗ faltan "+nn(need-st2)}</span></div>`:""}</div>`};
+  const pl=()=>{$("#pt").innerHTML=`<table><thead><tr><th>N°</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th class="r">m²</th><th class="r">Unid.</th><th class="r">Total</th><th>Estado</th><th></th></tr></thead><tbody>${R.map(r=>`<tr><td><b>#${pad(r.numero)}</b></td><td>${r.fecha}</td><td>${esc(r.cliente_nombre)}</td><td>${esc(r.producto_sku||"")}</td><td class="r">${nn(r.m2)}</td><td class="r">${r.placas}</td><td class="r" style="font-weight:600">${$m(r.total)}</td><td><span class="tag ${r.estado=="aceptado"?"cobrada":r.estado=="descartado"?"anulada":"pendiente"}">${r.estado}</span></td><td><button class="b s" data-p="${r.id}">PDF</button> <button class="b s" data-r="${r.id}">Remito</button> ${r.estado=="abierto"?`<button class="b s" data-s="${r.id}|aceptado">Aceptar</button> <button class="b s" data-s="${r.id}|descartado">Descartar</button>`:""}</td></tr>`).join("")||'<tr><td colspan="9" class="m">Todavía no hay presupuestos guardados</td></tr>'}</tbody></table>`;
+    $$("[data-p]").forEach(b=>b.onclick=()=>pdfPres(rowP(R.find(r=>r.id==b.dataset.p))));$$("[data-r]").forEach(b=>b.onclick=()=>pdfRem(rowP(R.find(r=>r.id==b.dataset.r))));
+    $$("[data-s]").forEach(b=>b.onclick=async()=>{const[id,es]=b.dataset.s.split("|");if(await act(()=>q(sb.from("presupuestos").update({estado:es}).eq("id",id)),"Presupuesto "+es)){R.find(r=>r.id==id).estado=es;pl()}})};
+  const guardar=then=>async()=>{const c=calcP(),nm=$("#xc").value.trim(),cl=CL.find(x=>x.nombre.toLowerCase()==nm.toLowerCase());
+    if(c.placas<=0||c.pvu<=0)return toast("Completá medidas, metros cuadrados y costo (o elegí un producto)",1);
+    try{const row=await q(sb.from("presupuestos").insert({cliente_id:cl?.id||null,cliente_nombre:nm||null,telefono:$("#xt").value.trim()||null,direccion:$("#xd").value.trim()||null,...(M4?{producto_id:selP?.id||null,producto_sku:selP?.sku||null,producto_desc:selP?selP.descripcion:null}:{}),ancho_cm:c.w,alto_cm:c.h,m2:c.m2,merma_pct:c.mer,placas:c.placas,costo_placa:c.cost,aumento_pct:r3(c.rec),precio_unitario:r2(c.pvu),subtotal:r2(c.sub),descuento_pct:c.d,descuento_monto:r2(c.dm),envio:c.env,total:r2(c.total),ganancia:r2(c.gan),validez_dias:c.val}).select().single());
+      R.unshift(row);pl();toast("Presupuesto N° "+pad(row.numero)+" guardado");if(then)then(rowP(row))}catch(e){toast(friendly(e.message),1)}};
+  $("#fm").oninput=rs;$("#xc").addEventListener("input",e=>{const c=CL.find(x=>x.nombre.toLowerCase()==e.target.value.trim().toLowerCase());if(c){if(!$("#xt").value)$("#xt").value=c.telefono||"";if(!$("#xd").value)$("#xd").value=c.direccion||""}});
+  $("#xp").addEventListener("input",pick);
+  $("#pg").onclick=guardar();$("#pp").onclick=guardar(pdfPres);$("#pr").onclick=guardar(pdfRem);rs();pl();
+};
+
+//CALC_COMPRA_START
+const sc=(v,d)=>{v=String(v??"").trim().replace(",",".");if(v===""||isNaN(+v))return 0n;const neg=v[0]=="-";if(neg)v=v.slice(1);let[i,f=""]=v.split(".");f=(f+"0".repeat(d+1)).slice(0,d+1);let x=BigInt(i||"0")*10n**BigInt(d)+BigInt(f.slice(0,d)||"0");if(+f[d]>=5)x+=1n;return neg?-x:x};
+const ds=(x,d)=>{const n=x<0n,a=(n?-x:x).toString().padStart(d+1,"0");return(n?"-":"")+(d?a.slice(0,-d)+"."+a.slice(-d):a)};
+const rdiv=(a,b)=>(2n*a+b)/(2n*b);
+function calcCompra(i){
+  const dg=sc(i.dg,3),ap=sc(i.ap,3),env=sc(i.envio,2),otr=sc(i.otros,2);
+  const L=i.items.map((x,k)=>{const q=sc(x.q,3),pr=sc(x.pr,2),di=sc(x.di,3);return{k,sku:x.sku,nombre:x.nombre,q,pr,di,bruto:rdiv(q*pr,1000n),neto:rdiv(q*pr*(100000n-di)*(100000n-dg),10n**13n)}});
+  const sub=L.reduce((a,l)=>a+l.bruto,0n),merch=L.reduce((a,l)=>a+l.neto,0n);
+  if(!L.length||merch<=0n)return null;
+  const base=i.base=="mercaderia"?merch:i.base=="mercaderia_envio_otros"?merch+env+otr:merch+env;
+  const adic=rdiv(base*ap,100000n),calc=merch+env+adic+otr,pg=sc(i.pagado,2),pay=pg>0n?pg:calc;
+  if(pay<=0n)return null;
+  let tot=0n;L.forEach(l=>{const n=pay*l.neto;l.f=n/merch;l.r=n%merch;tot+=l.f});
+  let R=pay-tot;[...L].sort((a,b)=>a.r>b.r?-1:a.r<b.r?1:a.k-b.k).forEach(l=>{if(R>0n){l.alloc=l.f+1n;R-=1n}else l.alloc=l.f});
+  const N=c=>Number(c)/100;
+  return{sub:N(sub),merch:N(merch),env:N(env),base:N(base),adic:N(adic),otr:N(otr),calc:N(calc),pay:N(pay),dif:N(pay-calc),factor:Number(pay)/Number(merch),pay_c:pay.toString(),merch_c:merch.toString(),
+   lines:L.map(l=>{const q=Number(l.q)/1000;return{sku:l.sku,nombre:l.nombre,q,pr:Number(l.pr)/100,di:Number(l.di)/1000,bruto:N(l.bruto),neto:N(l.neto),pdu:N(l.neto)/q,part:Number(l.neto)/Number(merch),alloc:N(l.alloc),gasto:N(l.alloc-l.neto),cu:N(l.alloc)/q,alloc_c:l.alloc.toString(),neto_c:l.neto.toString()}})}}
+//CALC_COMPRA_END
+
+V.compras=async()=>{
+  if(!M4){$("#main").innerHTML=`${Hdr("Abastecimiento","Compras y costos")} <p class="m">Esta pantalla necesita la actualización de la base de datos. Ejecutá <b>ACTUALIZAR_4_proveedores_stock.sql</b> en Supabase y recargá la página.</p>`;return}
+  const[prods,provs,cs,its,pgs,cats]=await Promise.all([q(sb.from("productos").select("id,sku,descripcion,costo,precio_venta,stock,categoria").order("sku")),q(sb.from("proveedores").select("*").order("nombre")),q(sb.from("compras").select("*").order("numero",{ascending:false}).limit(500)),q(sb.from("compra_items").select("*,compras(numero,fecha,proveedor,estado)").limit(5000)),q(sb.from("pagos_proveedor").select("*").order("fecha",{ascending:false}).limit(5000)),q(sb.from("categorias_producto").select("*").order("nombre"))]);
+  const tab=st.ct||"nueva",PS=c=>{const pg=Math.round(pgs.filter(p=>p.compra_id==c.id&&!p.anulado).reduce((a,p)=>a+ +p.importe,0)*100)/100,sal=Math.round((+c.total_pagado-pg)*100)/100;return{pg,sal,est:c.estado=="anulada"?"anulada":sal<=0?"Pagada":pg>0?"Parcial":"Pendiente"}},tg=e=>e=="Pagada"?"cobrada":e=="anulada"?"anulada":"pendiente";
+  $("#main").innerHTML=`${Hdr("Abastecimiento & Prorrateo","Compras y costos","Ingresá facturas de proveedores, prorrateá fletes/recargos y actualizá el costo unitario real.")}
+  <div class="row np" id="ctb" style="margin-bottom:18px">${[["nueva","Nueva compra / ingreso de mercadería"],["prov","Proveedores"],["hist","Compras, pagos y costos"]].map(t=>`<div style="flex:none"><button class="b ${tab==t[0]?"":"s"}" data-ct="${t[0]}">${t[1]}</button></div>`).join("")}</div><div id="ctv"></div>`;
+  $("#ctb").onclick=e=>{const b=e.target.closest("[data-ct]");if(b){st.ct=b.dataset.ct;draw()}};
+  const payForm=(host,c)=>{const sal=PS(c).sal;host.innerHTML=`<div class="box"><h3 style="margin-top:0">Registrar pago · compra #${c.numero} · ${esc(c.proveedor)} · saldo ${$m(sal)}</h3><div class="row">${F("Importe ($)","pi",sal)}${F("Fecha","pf",hoy(),"date")}<div><label>Medio de pago</label><input id="pm2"></div><div><label>Observaciones</label><input id="po"></div><div style="flex:none"><button class="b" id="pg2">Registrar pago</button></div></div></div>`;
+    $("#pg2").onclick=async()=>{if(await act(()=>rpc("registrar_pago_proveedor",{p_compra:c.id,p_importe:+$("#pi").value,p_fecha:$("#pf").value,p_medio:$("#pm2").value||null,p_obs:$("#po").value||null}),"Pago registrado"))draw()};host.scrollIntoView({behavior:"smooth"})};
+
+  function tNueva(){
+    const row=()=>`<tr><td><input class="sk" list="skp" placeholder="SKU"><span class="tag pendiente nv">NUEVO · se crea</span></td><td><input class="n" placeholder="Nombre del producto"></td><td><input class="q" type="number" step="any" value="1"></td><td><input class="p" type="number" step="any"></td><td><input class="d" type="number" step="any" value="0"></td><td><input class="ing" type="number" step="any" value="1"></td><td><input class="cg" list="cts" placeholder="categoría" disabled></td><td><input class="pv" type="number" step="any" placeholder="precio venta" disabled></td><td><button class="b s x">✕</button></td></tr>`;
+    $("#ctv").innerHTML=`<datalist id="skp">${prods.map(p=>`<option value="${esc(p.sku)}">${esc(p.descripcion)}</option>`).join("")}</datalist><datalist id="pvs">${provs.map(p=>`<option value="${esc(p.nombre)}">`).join("")}</datalist><datalist id="cts">${cats.map(c=>`<option value="${esc(c.nombre)}">`).join("")}</datalist>
+    <div class="box" id="kh"><h3 style="margin-top:0">Datos de la compra</h3><div class="row"><div><label>Proveedor *</label><input id="kp" list="pvs" placeholder="Elegí uno o escribí uno nuevo"><span class="m" id="kpn"></span></div>${F("Fecha de compra","kf",hoy(),"date")}<div><label>N° de presupuesto o factura (opcional)</label><input id="kc"></div></div>
+    <div class="row" style="margin-top:12px">${F("Descuento general (%)","kd",0)}${F("Costo de envío ($)","ke",0)}${F("Adicional por transferencia (%)","ka",0)}<div style="min-width:240px"><label>Base del adicional</label><select id="kb"><option value="mercaderia_envio">Mercadería descontada + envío</option><option value="mercaderia">Solo mercadería descontada</option><option value="mercaderia_envio_otros">Mercadería + envío + otros gastos</option></select></div>${F("Otros gastos adicionales ($)","ko",0)}${F("Importe efectivamente pagado (opcional)","kt","")}</div>
+    <div class="row" style="margin-top:12px"><div><label>Pago al proveedor</label><select id="kpay"><option value="total">Pagada ahora (total)</option><option value="parcial">Pago parcial ahora</option><option value="luego">A pagar después (cuenta corriente)</option></select></div><div id="kpaw" style="display:none">${F("Importe pagado ahora ($)","kpa","")}</div><div><label>Medio de pago</label><input id="kpm" placeholder="Transferencia, efectivo…"></div><div style="flex:2"><label>Observaciones</label><input id="kn"></div></div></div>
+    <div class="box t" id="kit0"><table class="ft"><thead><tr><th>SKU</th><th>Producto</th><th>Cantidad</th><th>Precio unit. original</th><th>Desc. %</th><th>Ingresa al stock</th><th>Categoría (si es nuevo)</th><th>Precio venta (si es nuevo)</th><th></th></tr></thead><tbody id="kit">${row()}</tbody></table><p style="margin-top:12px"><button class="b s" id="ka2">+ Agregar artículo</button></p><p class="m">Al confirmar, el stock de cada artículo se suma solo (podés cambiar la cantidad que ingresa). Si el SKU no existe, se crea el producto nuevo con su categoría, precio y stock.</p></div>
+    <div id="kr"></div><p style="margin-top:16px"><button class="b" id="kg">Confirmar y guardar compra</button> <button class="b s" id="kl">Limpiar</button></p>`;
+    let KR=null;const g=(tr,c)=>tr.querySelector(c).value.trim(),sync=tr=>{const k=g(tr,".sk"),p=prods.find(p=>p.sku.toUpperCase()==k.toUpperCase());tr.querySelector(".nv").classList.toggle("on",!!k&&!p);const dis=!k||!!p;tr.querySelector(".cg").disabled=tr.querySelector(".pv").disabled=dis;tr.querySelector(".cg").placeholder=p?"existente":"categoría";return p};
+    const rc=()=>{const items=$$("#kit tr").map(tr=>({sku:g(tr,".sk"),nombre:g(tr,".n"),q:g(tr,".q"),pr:g(tr,".p"),di:g(tr,".d")||"0"}));
+      const r=KR=calcCompra({dg:$("#kd").value,ap:$("#ka").value,envio:$("#ke").value,otros:$("#ko").value,base:$("#kb").value,pagado:$("#kt").value,items});
+      const pv=$("#kp").value.trim();$("#kpn").textContent=pv&&!provs.some(x=>x.nombre.toLowerCase()==pv.toLowerCase())?"Proveedor nuevo: se creará al confirmar (completá sus datos en la pestaña Proveedores).":"";
+      $("#kpaw").style.display=$("#kpay").value=="parcial"?"block":"none";
+      if(!r){$("#kr").innerHTML='<div class="box m">Cargá al menos un artículo con cantidad y precio para ver el costo real.</div>';return}
+      const sum=r.lines.reduce((a,l)=>a+BigInt(l.alloc_c),0n),ok=sum.toString()==r.pay_c,L=(a,b,c)=>`<div class="ln"><span>${a}</span><span ${c||""}>${b}</span></div>`,pa=$("#kpay").value=="total"?r.pay:$("#kpay").value=="parcial"?(+$("#kpa").value||0):0;
+      $("#kr").innerHTML=`<div class="box"><h3 style="margin-top:0">Resultado</h3>${L("Subtotal de mercadería original",$m(r.sub))}${L("Descuentos (individuales + general)","- "+$m(r.sub-r.merch))}${L("<b>Mercadería descontada</b>","<b>"+$m(r.merch)+"</b>")}${L("Envío",$m(r.env))}${L(`Adicional por transferencia (${nn(+$("#ka").value||0)} % sobre ${$m(r.base)})`,$m(r.adic))}${L("Otros gastos",$m(r.otr))}${L("<b>Total de adquisición calculado</b>","<b>"+$m(r.calc)+"</b>")}
+      ${r.dif!=0?L("Importe efectivamente pagado",$m(r.pay))+L("Diferencia distribuida entre los artículos",$m(r.dif)):""}${L("Factor de costo (total ÷ mercadería descontada)",r.factor.toFixed(6))}${L("Control: suma de costos asignados = total pagado",ok?`✓ ${$m(Number(sum)/100)}`:"✗ NO COINCIDE",`style="color:var(--${ok?"ok":"bad"})"`)}${L("Pago ahora / saldo con el proveedor",`${$m(pa)} / ${$m(r.pay-pa)}`)}</div>
+      <div class="box t"><table><thead><tr><th>SKU</th><th>Artículo</th><th class="r">Cant.</th><th class="r">Precio original</th><th class="r">Desc. aplicado</th><th class="r">Precio c/desc.</th><th class="r">Gastos asignados</th><th class="r" style="color:var(--gold)">COSTO UNIT. FINAL</th><th class="r">Costo total</th></tr></thead><tbody>${r.lines.map(l=>`<tr><td>${esc(l.sku)}</td><td>${esc(l.nombre)}</td><td class="r">${nn(l.q)}</td><td class="r">${$m(l.pr)}</td><td class="r">${l.bruto?"− "+nn((1-l.neto/l.bruto)*100)+" %":"-"}</td><td class="r">${$m(l.pdu)}</td><td class="r">${$m(l.gasto)}<br><span class="m">${nn(l.part*100)} % del total</span></td><td class="r" style="background:var(--gold-soft);color:var(--ink);font-weight:700;font-size:15px">${$m(l.cu)}</td><td class="r">${$m(l.alloc)}</td></tr>`).join("")}</tbody></table></div>
+      <h3>Cómo se llegó al costo de cada artículo</h3>${r.lines.map(l=>{const e=r.env*l.part,a=r.adic*l.part,o=r.otr*l.part,aj=l.gasto-e-a-o;return`<details class="box"><summary><b>${esc(l.sku)}</b> · ${esc(l.nombre)} → <b style="color:var(--gold)">${$m(l.cu)}</b></summary>
+        <div class="ln"><span>1. Cantidad × precio original</span><span>${nn(l.q)} × ${$m(l.pr)} = ${$m(l.bruto)}</span></div><div class="ln"><span>2. Descuentos (individual ${nn(l.di)} % y luego general ${nn(+$("#kd").value||0)} %)</span><span>− ${$m(l.bruto-l.neto)} → ${$m(l.neto)} (${$m(l.pdu)} por unidad)</span></div>
+        <div class="ln"><span>3. Participación en la mercadería descontada</span><span>${nn(l.part*100)} %</span></div><div class="ln"><span>4. Envío asignado</span><span>${$m(e)}</span></div><div class="ln"><span>   Adicional por transferencia asignado</span><span>${$m(a)}</span></div><div class="ln"><span>   Otros gastos asignados</span><span>${$m(o)}</span></div><div class="ln"><span>   Ajuste por redondeo / diferencia de importe pagado</span><span>${$m(aj)}</span></div>
+        <div class="ln"><span>5. Costo total = ${$m(l.neto)} + ${$m(l.gasto)}</span><span><b>${$m(l.alloc)}</b></span></div><div class="ln"><span>6. Costo unitario final = ${$m(l.alloc)} ÷ ${nn(l.q)}</span><span><b style="color:var(--gold)">${$m(l.cu)}</b></span></div>
+        <h3>Precio de venta según recargo</h3><div class="t"><table><thead><tr><th class="r">Recargo sobre costo</th><th class="r">Precio de venta</th><th class="r">Ganancia por unidad</th><th class="r">Margen sobre precio de venta</th><th class="r">Ganancia total estimada (${nn(l.q)} u.)</th></tr></thead><tbody>${[20,30,40,50,60,100].map(p=>{const pv=l.cu*(1+p/100),ga=pv-l.cu;return`<tr><td class="r">${p} %</td><td class="r">${$m(pv)}</td><td class="r">${$m(ga)}</td><td class="r">${nn(ga/pv*100)} %</td><td class="r">${$m(ga*l.q)}</td></tr>`}).join("")}</tbody></table></div><p class="m">El recargo se calcula sobre el costo; el margen, sobre el precio de venta. No son lo mismo.</p></details>`}).join("")}`};
+    $("#kh").oninput=rc;$("#kit0").oninput=e=>{const tr=e.target.closest("tr"),t=e.target;if(t.classList.contains("sk")){const p=sync(tr);if(p&&!tr.querySelector(".n").value)tr.querySelector(".n").value=p.descripcion}
+      if(t.classList.contains("q")&&!tr.querySelector(".ing").dataset.man)tr.querySelector(".ing").value=t.value;if(t.classList.contains("ing"))t.dataset.man=1;rc()};
+    $("#kit").onclick=e=>{if(e.target.classList.contains("x")&&$$("#kit tr").length>1){e.target.closest("tr").remove();rc()}};$("#ka2").onclick=()=>$("#kit").insertAdjacentHTML("beforeend",row());$("#kl").onclick=()=>draw();
+    $("#kg").onclick=async()=>{const prov=$("#kp").value.trim(),items=$$("#kit tr").map(tr=>{const it={sku:g(tr,".sk"),nombre:g(tr,".n"),cantidad:ds(sc(g(tr,".q"),3),3),precio_unitario:ds(sc(g(tr,".p"),2),2),descuento_pct:ds(sc(g(tr,".d")||"0",3),3),ingreso_stock:ds(sc(g(tr,".ing")||"0",3),3)};if(!tr.querySelector(".cg").disabled){if(g(tr,".cg"))it.categoria=g(tr,".cg");if(g(tr,".pv"))it.precio_venta=ds(sc(g(tr,".pv"),2),2)}return it});
+      if(!prov)return toast("Indicá el proveedor",1);if(!KR)return toast("Cargá los artículos de la compra (cantidad y precio)",1);if(items.some(i=>!i.sku||!i.nombre||sc(i.cantidad,3)<=0n))return toast("Cada artículo necesita SKU, nombre y cantidad",1);
+      const modo=$("#kpay").value,pa=modo=="total"?ds(BigInt(KR.pay_c),2):modo=="parcial"?ds(sc($("#kpa").value,2),2):"0.00";
+      if(modo=="parcial"&&(sc($("#kpa").value,2)<=0n||sc($("#kpa").value,2)>BigInt(KR.pay_c)))return toast("El pago parcial debe ser mayor a 0 y no superar el total",1);
+      if(!confirm(`¿Confirmar la compra a ${prov} por ${$m(KR.pay)}?\nPago ahora: ${$m(Number(sc(pa,2))/100)}\nSe actualizarán costos, stock e historial.`))return;
+      const p={proveedor:prov,fecha:$("#kf").value,comprobante:$("#kc").value.trim(),observaciones:$("#kn").value.trim(),descuento_general_pct:ds(sc($("#kd").value,3),3),envio:ds(sc($("#ke").value,2),2),adicional_pct:ds(sc($("#ka").value,3),3),adicional_base:$("#kb").value,otros_gastos:ds(sc($("#ko").value,2),2),pago_ahora:pa,medio_pago:$("#kpm").value.trim(),items};
+      if(sc($("#kt").value,2)>0n)p.total_pagado=ds(sc($("#kt").value,2),2);
+      if(await act(()=>rpc("confirmar_compra",{p}),"Compra registrada"))draw()};
+    rc();
+  }
+
+  function tProv(){
+    const ed=provs.find(p=>p.id==st.vid)||{},S={},I=(l,id,v)=>`<div><label>${l}</label><input id="${id}" value="${esc(v)}"></div>`;
+    cs.filter(c=>c.estado=="confirmada").forEach(c=>{const k=c.proveedor_id||"-",x=S[k]??={n:0,t:0,p:0};x.n++;x.t+=+c.total_pagado;x.p+=PS(c).pg});
+    $("#ctv").innerHTML=`<div class="box"><h3 style="margin-top:0">${ed.id?"Editar proveedor":"Nuevo proveedor"}</h3><div class="row">${I("Nombre comercial *","vn",ed.nombre)}${I("Razón social","vr",ed.razon_social)}${I("CUIT","vc2",ed.cuit)}${I("Persona de contacto","vco",ed.contacto)}</div><div class="row" style="margin-top:12px">${I("Teléfono","vt",ed.telefono)}${I("Email","ve",ed.email)}${I("Dirección","vd",ed.direccion)}${I("Localidad","vl",ed.localidad)}</div>
+    <div class="row" style="margin-top:12px">${I("Web","vw",ed.web)}${I("Condición de pago (contado, 30 días…)","vp",ed.condicion_pago)}${I("Notas","vno",ed.notas)}<div style="flex:none"><button class="b" id="vg">Guardar</button> ${ed.id?'<button class="b s" id="vx">Cancelar</button>':""}</div></div></div>
+    <div class="box t"><table><thead><tr><th>Proveedor</th><th>CUIT</th><th>Contacto</th><th>Teléfono</th><th>Condición de pago</th><th class="r">Compras</th><th class="r">Total comprado</th><th class="r">Pagado</th><th class="r">Saldo</th><th>Estado</th><th></th></tr></thead><tbody>${provs.map(p=>{const x=S[p.id]||{n:0,t:0,p:0};return`<tr><td><b>${esc(p.nombre)}</b>${p.razon_social?`<br><span class="m">${esc(p.razon_social)}</span>`:""}</td><td>${esc(p.cuit)}</td><td>${esc(p.contacto)}</td><td>${esc(p.telefono)}</td><td>${esc(p.condicion_pago)}</td><td class="r">${x.n}</td><td class="r">${$m(x.t)}</td><td class="r">${$m(x.p)}</td><td class="r" style="color:var(--${x.t-x.p>0.004?"bad":"ok"});font-weight:600">${$m(x.t-x.p)}</td><td>${p.activo?"Activo":"Inactivo"}</td><td><button class="b s" data-ve="${p.id}">Editar</button> <button class="b s" data-vcc="${p.id}">Cuenta corriente</button></td></tr>`}).join("")||'<tr><td colspan="11" class="m">Todavía no hay proveedores. Se crean al cargar una compra o desde el formulario de arriba.</td></tr>'}</tbody></table></div><div id="vcc"></div><div id="pfh"></div>`;
+    if($("#vx"))$("#vx").onclick=()=>{st.vid=null;draw()};
+    $("#vg").onclick=async()=>{const d={nombre:$("#vn").value.trim(),razon_social:$("#vr").value.trim()||null,cuit:$("#vc2").value.trim()||null,contacto:$("#vco").value.trim()||null,telefono:$("#vt").value.trim()||null,email:$("#ve").value.trim()||null,direccion:$("#vd").value.trim()||null,localidad:$("#vl").value.trim()||null,web:$("#vw").value.trim()||null,condicion_pago:$("#vp").value.trim()||null,notas:$("#vno").value.trim()||null};
+      if(!d.nombre)return toast("El nombre es obligatorio",1);if(await act(()=>q(ed.id?sb.from("proveedores").update(d).eq("id",ed.id):sb.from("proveedores").insert(d)),"Proveedor guardado")){st.vid=null;draw()}};
+    $$("[data-ve]").forEach(b=>b.onclick=()=>{st.vid=b.dataset.ve;draw()});
+    const cc=id=>{const p=provs.find(x=>x.id==id),lst=cs.filter(c=>c.proveedor_id==id);$("#vcc").innerHTML=`<h3>Cuenta corriente · ${esc(p.nombre)}</h3><div class="box t"><table><thead><tr><th>Compra</th><th>Fecha</th><th>Comprobante</th><th class="r">Total</th><th class="r">Pagado</th><th class="r">Saldo</th><th>Estado</th><th></th></tr></thead><tbody>${lst.map(c=>{const s=PS(c);return`<tr><td>#${c.numero}</td><td>${c.fecha}</td><td>${esc(c.comprobante)}</td><td class="r">${$m(c.total_pagado)}</td><td class="r">${$m(s.pg)}</td><td class="r">${$m(s.sal)}</td><td><span class="tag ${tg(s.est)}">${s.est}</span></td><td>${s.sal>0&&c.estado=="confirmada"?`<button class="b s" data-pay="${c.id}">Registrar pago</button>`:""}</td></tr>`}).join("")||'<tr><td colspan="8" class="m">Sin compras</td></tr>'}</tbody></table></div>`;
+      $$("[data-pay]").forEach(b=>b.onclick=()=>payForm($("#pfh"),cs.find(c=>c.id==b.dataset.pay)));$("#vcc").scrollIntoView({behavior:"smooth"})};
+    $$("[data-vcc]").forEach(b=>b.onclick=()=>cc(b.dataset.vcc));
+  }
+
+  function tHist(){
+    $("#ctv").innerHTML=`<div class="box t"><table><thead><tr><th>N°</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th class="r">Total</th><th class="r">Pagado</th><th class="r">Saldo</th><th>Pago</th><th>Estado</th><th></th></tr></thead><tbody>${cs.map(c=>{const s=PS(c);return`<tr><td><b>#${c.numero}</b></td><td>${c.fecha}</td><td>${esc(c.proveedor)}</td><td>${esc(c.comprobante)}</td><td class="r" style="font-weight:600">${$m(c.total_pagado)}</td><td class="r">${$m(s.pg)}</td><td class="r">${$m(s.sal)}</td><td><span class="tag ${tg(s.est)}">${s.est}</span></td><td>${c.estado}</td><td><button class="b s" data-k="${c.id}">Ver</button></td></tr>`}).join("")||'<tr><td colspan="10" class="m">Todavía no hay compras</td></tr>'}</tbody></table></div><div id="kdt"></div><div id="pfh"></div>
+    <h3>Historial de costos por artículo</h3><div class="box"><div class="row"><div><label>SKU o producto</label><input id="hs" list="skp2" placeholder="Elegí un SKU"><datalist id="skp2">${prods.map(p=>`<option value="${esc(p.sku)}">${esc(p.descripcion)}</option>`).join("")}</datalist></div></div></div><div id="hc"></div>`;
+    const det=c=>{const li=its.filter(i=>i.compra_id==c.id).sort((a,b)=>a.linea-b.linea),mp=pgs.filter(p=>p.compra_id==c.id),s=PS(c);
+      $("#kdt").innerHTML=`<div class="box"><h3 style="margin-top:0">Compra #${c.numero} · ${esc(c.proveedor)} · ${c.fecha}</h3><p class="m">Descuento general ${nn(c.descuento_general_pct)} % · envío ${$m(c.envio)} · adicional ${nn(c.adicional_pct)} % (${$m(c.adicional_monto)}) · otros ${$m(c.otros_gastos)} · factor ${(+c.factor).toFixed(6)} · total <b>${$m(c.total_pagado)}</b> · pagado ${$m(s.pg)} · <b>saldo ${$m(s.sal)}</b>${c.anulada_motivo?` · <span class="err">anulada: ${esc(c.anulada_motivo)}</span>`:""}</p>
+      <div class="t"><table><thead><tr><th>SKU</th><th>Artículo</th><th class="r">Cant.</th><th class="r">Ingresó a stock</th><th class="r">Precio orig.</th><th class="r">Desc.</th><th class="r">Gastos asig.</th><th class="r">Costo unit. final</th><th class="r">Costo total</th><th class="r">Costo anterior</th></tr></thead><tbody>${li.map(i=>`<tr><td>${esc(i.sku)}</td><td>${esc(i.nombre)}</td><td class="r">${nn(i.cantidad)}</td><td class="r">${nn(i.ingreso_stock)}</td><td class="r">${$m(i.precio_unitario)}</td><td class="r">${nn(i.descuento_pct)} %</td><td class="r">${$m(i.gastos_asignados)}</td><td class="r" style="color:var(--gold);font-weight:700">${$m(i.costo_unitario)}</td><td class="r">${$m(i.costo_total)}</td><td class="r">${i.costo_anterior==null?"nuevo":$m(i.costo_anterior)}</td></tr>`).join("")}</tbody></table></div>
+      <h3>Pagos</h3><div class="t"><table><thead><tr><th>Fecha</th><th class="r">Importe</th><th>Medio</th><th>Observaciones</th><th>Estado</th><th></th></tr></thead><tbody>${mp.map(p=>`<tr><td>${p.fecha}</td><td class="r">${$m(p.importe)}</td><td>${esc(p.medio_pago)}</td><td>${esc(p.observaciones)}</td><td>${p.anulado?'<span class="tag anulada">anulado</span>':""}</td><td>${p.anulado||c.estado!="confirmada"?"":`<button class="b s" data-ap="${p.id}">Anular pago</button>`}</td></tr>`).join("")||'<tr><td colspan="6" class="m">Sin pagos registrados</td></tr>'}</tbody></table></div>
+      ${c.estado=="confirmada"?`<p style="margin-top:14px">${s.sal>0?'<button class="b" id="kpg">Registrar pago</button> ':""}<button class="b s" id="kan">Anular compra</button></p><div class="row">${F("Recargo sobre costo (%)","kr2",50)}<div style="flex:none"><button class="b s" id="kap">Aplicar como precio de venta a estos SKU</button></div></div><p class="m">Precio de venta = costo unitario × (1 + recargo). Cambia el precio del catálogo; el historial de costos no se modifica.</p>`:""}</div>`;
+      if($("#kpg"))$("#kpg").onclick=()=>payForm($("#pfh"),c);
+      $$("[data-ap]").forEach(b=>b.onclick=async()=>{const m=prompt("Motivo de la anulación del pago:");if(m&&await act(()=>rpc("anular_pago_proveedor",{p_pago:b.dataset.ap,p_motivo:m}),"Pago anulado"))draw()});
+      if($("#kap"))$("#kap").onclick=async()=>{const r=sc($("#kr2").value,3);if(!confirm("¿Actualizar el precio de venta de estos productos con un recargo de "+nn(Number(r)/1000)+" %?"))return;
+        await act(()=>Promise.all(li.filter(i=>i.producto_id).map(i=>q(sb.from("productos").update({precio_venta:Number(rdiv(sc(i.costo_unitario,4)*(100000n+r),10n**7n))/100}).eq("id",i.producto_id)))),"Precios de venta actualizados")};
+      if($("#kan"))$("#kan").onclick=async()=>{const m=prompt("Motivo de la anulación (se revierten costo, stock, pagos y caja):");if(m&&await act(()=>rpc("anular_compra",{p_compra:c.id,p_motivo:m}),"Compra anulada"))draw()}};
+    $$("[data-k]").forEach(b=>b.onclick=()=>{det(cs.find(c=>c.id==b.dataset.k));$("#kdt").scrollIntoView({behavior:"smooth"})});
+    $("#hs").oninput=e=>{const v=e.target.value.trim().toLowerCase();if(!v){$("#hc").innerHTML="";return}
+      const h=its.filter(i=>i.compras?.estado=="confirmada"&&(i.sku.toLowerCase()==v||i.nombre.toLowerCase().includes(v))).sort((a,b)=>(b.compras.fecha+b.compras.numero).localeCompare(a.compras.fecha+a.compras.numero)),tc=h.reduce((a,i)=>a+ +i.costo_total,0),tq=h.reduce((a,i)=>a+ +i.cantidad,0);
+      $("#hc").innerHTML=h.length?`<div class="g">${K("Último costo",$m(h[0].costo_unitario))}${K("Costo promedio ponderado",$m(tc/tq))}${K("Compras registradas",h.length)}</div><div class="box t"><table><thead><tr><th>Fecha</th><th>Compra</th><th>Proveedor</th><th class="r">Cantidad</th><th class="r">Costo unit. final</th></tr></thead><tbody>${h.map(i=>`<tr><td>${i.compras.fecha}</td><td>#${i.compras.numero}</td><td>${esc(i.compras.proveedor)}</td><td class="r">${nn(i.cantidad)}</td><td class="r">${$m(i.costo_unitario)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="box m">Sin compras para ese artículo</div>'};
+  }
+  ({nueva:tNueva,prov:tProv,hist:tHist})[tab]();
+};
+
+V.caja=async()=>{
+  const[c,rows,du]=await Promise.all([rpc("caja_actual"),q(sb.from("movimientos_caja").select("*").order("created_at",{ascending:false}).limit(300)),rpc("resumen_dueno")]);
+  const T={venta:"Venta",ajuste_venta:"Ajuste de venta",anulacion_venta:"Anulación de venta",gasto:"Gasto",anulacion_gasto:"Anulación de gasto",aporte_capital:"Aporte de capital",retiro_inversor:"Retiro del inversor",retiro_dueno:"Retiro del dueño",otro_ingreso:"Otro ingreso",otro_egreso:"Otro egreso"};
+  $("#main").innerHTML=`${Hdr("Tesorería & Liquidez","Caja y movimientos","Seguimiento en tiempo real del flujo de dinero efectivo, retiros y aportes de capital.")}
+  <div class="g">${K("Dinero disponible en caja",$m(c),c<0?"neg":"pos")}${K("Ganancia acumulada del dueño",$m(du[0].ganancias_acumuladas))}${K("Retiros del dueño",$m(du[0].retiros))}${K("Saldo del dueño",$m(du[0].saldo))}</div>
+  <p class="m" style="margin-top:12px">La caja es el dinero real que entró y salió. No es lo mismo que la ganancia contable. Las reinversiones del inversor no mueven la caja.</p>
+  <h3>Registrar movimiento</h3><div class="box row"><div><label>Tipo</label><select id="ct"><option value="retiro_dueno">Retiro del dueño</option><option value="aporte_capital">Aporte de capital</option><option value="otro_ingreso">Otro ingreso</option><option value="otro_egreso">Otro egreso</option></select></div>
+  <div><label>Importe</label><input id="ci" type="number" step="any" placeholder="0.00"></div><div><label>Concepto</label><input id="cc" placeholder="Detalle del movimiento"></div><div><label>Fecha</label><input id="cf" type="date" value="${hoy()}"></div><div style="flex:none"><button class="b" id="cg">Registrar</button></div></div>
+  <div class="box t"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th class="r">Importe</th><th>Medio</th></tr></thead><tbody>${rows.map(m=>`<tr><td>${m.fecha}</td><td>${T[m.tipo]||m.tipo}</td><td>${esc(m.concepto)}</td><td class="r" style="color:var(--${m.importe<0?"bad":"ok"});font-weight:600">${$m(m.importe)}</td><td>${esc(m.medio_pago)}</td></tr>`).join("")}</tbody></table></div>`;
+  $("#cg").onclick=async()=>{if(await act(()=>rpc("registrar_movimiento_caja",{p_tipo:$("#ct").value,p_importe:+$("#ci").value,p_concepto:$("#cc").value,p_fecha:$("#cf").value}),"Movimiento registrado"))draw()};
+};
+
+V.rep=async()=>{
+  const t=hoy(),d=st.rd||t.slice(0,8)+"01",h=st.rh||t;
+  const[r,vs,gs]=await Promise.all([rpc("resumen_periodo",{p_desde:d,p_hasta:h}),q(sb.from("ventas").select("*,venta_items(sku,descripcion,cantidad,total,costo_total)").eq("estado","cobrada").gte("fecha",d).lte("fecha",h).order("fecha")),q(sb.from("gastos").select("*,categorias_gasto(nombre,afecta_resultado)").eq("anulado",false).gte("fecha",d).lte("fecha",h))]);
+  const x=r[0],dia={},sku={},cat={},mes={};
+  vs.forEach(v=>{const a=dia[v.fecha]??=[0,0,0,0];a[0]++;a[1]+=+v.unidades;a[2]+=+v.total;a[3]+=+v.costo_total;const m=mes[v.fecha.slice(0,7)]??=[0,0];m[0]+=+v.total;m[1]+=+v.ganancia_bruta;
+    v.venta_items.forEach(i=>{const s=sku[i.sku]??={d:i.descripcion,u:0,t:0,c:0};s.u+=+i.cantidad;s.t+=+i.total;s.c+=+i.costo_total})});
+  gs.forEach(g=>{const n=g.categorias_gasto?.nombre||"-";cat[n]=(cat[n]||0)+ +g.importe});
+  const D=Object.entries(dia).map(([f,a])=>[f,a[0],a[1],a[2],a[3],a[2]-a[3]]),S=Object.entries(sku).sort((a,b)=>b[1].u-a[1].u).map(([k,s])=>[k,s.d,s.u,s.t,s.c,s.t-s.c]),G=Object.entries(cat).sort((a,b)=>b[1]-a[1]);
+  const tb=(id,head,rows,ty)=>`<div class="box t"><div class="row np" style="margin-bottom:12px"><div><b>${id}</b></div><div style="flex:none"><button class="b s" data-e="${id}">Exportar CSV (Excel)</button></div></div><table><thead><tr>${head.map((x,i)=>`<th class="${ty[i]=="t"?"":"r"}">${x}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((v,i)=>`<td class="${ty[i]=="t"?"":"r"}">${ty[i]=="m"?$m(v):ty[i]=="n"?nn(v):esc(v)}</td>`).join("")}</tr>`).join("")||'<tr><td class="m">Sin datos</td></tr>'}</tbody></table></div>`;
+  const tabs={"Ventas por día":[["Fecha","Operaciones","Unidades","Facturación","Costo","Ganancia bruta"],D],"Ventas por SKU (más vendidos primero)":[["SKU","Descripción","Unidades","Facturación","Costo","Ganancia bruta"],S],"Gastos por categoría":[["Categoría","Importe"],G]};
+  $("#main").innerHTML=`${Hdr("Inteligencia Comercial","Reportes","Informes detallados de ventas por jornada, ranking de artículos más vendidos y estructura de gastos.")}
+  <div class="row box np"><div><label>Desde</label><input id="rd" type="date" value="${d}"></div><div><label>Hasta</label><input id="rh" type="date" value="${h}"></div><div style="flex:none"><button class="b" id="ra">Aplicar</button> <button class="b s" id="rp">Imprimir / PDF</button></div></div>
+  <p class="m">Período: <b>${d}</b> al <b>${h}</b> · solo ventas cobradas</p>
+  <div class="g">${K("Facturación",$m(x.facturacion))}${K("Costo de mercadería",$m(x.costo_mercaderia))}${K("Gastos operativos",$m(x.gastos_operativos))}${K("Ganancia bruta",$m(x.ganancia_bruta))}${K("Ganancia neta",$m(x.ganancia_neta),x.ganancia_neta<0?"neg":"pos")}${K("Rentabilidad",nn(x.rentabilidad_pct)+" %")}${K("Unidades",nn(x.unidades))}</div>
+  <h3>Evolución mensual</h3>${chart(Object.keys(mes),[{n:"Ventas",c:"#9C7D4C",v:Object.values(mes).map(a=>a[0])},{n:"Ganancia bruta",c:"#3D7A56",v:Object.values(mes).map(a=>a[1])}])}
+  <h3>Ventas por día</h3>${tb("Ventas por día",tabs["Ventas por día"][0],D,"tnnmmm")}
+  <h3>Ventas por SKU</h3>${tb("Ventas por SKU",tabs["Ventas por SKU (más vendidos primero)"][0],S,"ttnmmm")}
+  <h3>Gastos</h3>${tb("Gastos por categoría",["Categoría","Importe"],G,"tm")}`;
+  $("#ra").onclick=()=>{st.rd=$("#rd").value;st.rh=$("#rh").value;draw()};$("#rp").onclick=()=>print();
+  const data={"Ventas por día":[tabs["Ventas por día"][0],D],"Ventas por SKU":[tabs["Ventas por SKU (más vendidos primero)"][0],S],"Gastos por categoría":[["Categoría","Importe"],G]};
+  $$("[data-e]").forEach(b=>b.onclick=()=>csv(b.dataset.e.replace(/\s+/g,"_")+"_"+d+"_"+h,...data[b.dataset.e]));
+};
+boot();
+</script></body></html>
